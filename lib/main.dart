@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'package:tunisian_trip_planner/shared/network/local/cache_helper.dart';
 import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
 
-void main() {
+void main() async{
   WidgetsFlutterBinding.ensureInitialized();
 
-  DioHelper.inti();
+  await DioHelper.inti();
+
+  await Hive.initFlutter();
+  await CacheHelper.init();
+
 
   runApp(const MyApp());
 }
