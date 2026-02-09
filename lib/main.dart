@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  DioHelper.inti();
 
   runApp(const MyApp());
 }
