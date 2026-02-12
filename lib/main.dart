@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:tunisian_trip_planner/modules/splash_screen.dart';
 import 'package:tunisian_trip_planner/shared/network/local/cache_helper.dart';
 import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
 
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: Placeholder(),
+      home: SplashScreen(),
     );
   }
 }
