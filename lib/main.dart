@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hexcolor/hexcolor.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:tunisian_trip_planner/modules/onboardingScreen.dart';
 import 'package:tunisian_trip_planner/modules/splash_screen.dart';
 import 'package:tunisian_trip_planner/shared/network/local/cache_helper.dart';
 import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
@@ -24,12 +27,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'TuniWays',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        fontFamily: GoogleFonts.poppins.toString(),
+        primaryColor: HexColor("#67b99a"),
+        primarySwatch: Colors.teal,
       ),
-      home: SplashScreen(),
+      home: OnboardingScreen(),
     );
   }
 }

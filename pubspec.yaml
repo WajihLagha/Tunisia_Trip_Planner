@@ -42,7 +42,7 @@ dependencies:
   dio: ^5.7.0
   hexcolor: ^3.0.1
 #  webview_flutter: ^4.10.0
-#  smooth_page_indicator: ^1.2.0+3
+  smooth_page_indicator: ^1.2.0+3
 #  fluttertoast: ^8.2.12
   google_fonts: ^6.2.1
   hive: ^2.2.3
