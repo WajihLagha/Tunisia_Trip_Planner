@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 
-Widget nextButton() {
+Widget nextButton(
+    {
+      required GestureTapCallback onTap
+    }
+    ) {
   return Container(
     width: double.infinity,
     decoration: BoxDecoration(
@@ -19,9 +23,9 @@ Widget nextButton() {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(40),
-        onTap: () {},
+        onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [
@@ -34,11 +38,7 @@ Widget nextButton() {
                 ),
               ),
               SizedBox(width: 8),
-              Icon(
-                Icons.arrow_right_alt,
-                color: Colors.white,
-                size: 30,
-              ),
+              Icon(Icons.arrow_right_alt, color: Colors.white, size: 30),
             ],
           ),
         ),
