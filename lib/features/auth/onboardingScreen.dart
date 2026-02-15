@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -37,21 +36,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: "Discover Tunisia's",
       image: "assets/images/onboarding.jpg",
       description:
-      "Explore local hotels, guest houses, and\nattractive matches to your taste",
+      "Explore local hotels, guest houses, and attractive matches to your taste",
     ),
     OnBoardingModel(
       title2: "With Ease",
       title: "Rent Vehicles",
       image: "assets/images/onboarding1.jpg",
       description:
-      "Book cars and bus tickets instantly to move\naround the city without limits",
+      "Book cars and bus tickets instantly to move around the city without limits",
     ),
     OnBoardingModel(
       title2: "Trip Plans",
       title: "AI-Powered",
       image: "assets/images/onboarding2.jpg",
       description:
-      "Let our smart recommendations build the\nperfect itinerary for you",
+      "Let our smart recommendations build the perfect itinerary for you",
     ),
   ];
 
@@ -86,7 +85,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (isLast) {
       // Use your routing helper to remove onboarding from stack
       // Replace LoginScreen with your actual screen
-      navigateAndRemoveAll(context, const LoginScreen());
+      navigateAndRemoveAll(context, LoginScreen());
     } else {
       pageController.nextPage(
         duration: const Duration(milliseconds: 500),
@@ -96,7 +95,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _onSkipPressed() {
-    navigateAndRemoveAll(context, const LoginScreen());
+    navigateAndRemoveAll(context, LoginScreen());
   }
 
   @override
