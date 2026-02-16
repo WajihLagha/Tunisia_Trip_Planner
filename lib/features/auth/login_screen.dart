@@ -4,7 +4,9 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:tunisian_trip_planner/features/auth/login_cubit/login_cubit.dart';
 import 'package:tunisian_trip_planner/features/auth/login_cubit/login_states.dart';
 import 'package:tunisian_trip_planner/features/auth/privacy_screen.dart';
+import 'package:tunisian_trip_planner/features/auth/register_screen.dart';
 import 'package:tunisian_trip_planner/shared/widgets/components.dart';
+import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 
 
 class LoginScreen extends StatelessWidget {
@@ -42,7 +44,6 @@ class LoginScreen extends StatelessWidget {
                 // 2. The Scrollable Content
                 CustomScrollView(
                   slivers: [
-                    // Part A: The Top Header (Logo, Get Started button)
                     SliverToBoxAdapter(
                       child: Column(
                         children: [
@@ -60,19 +61,24 @@ class LoginScreen extends StatelessWidget {
 
                               const SizedBox(width: 5),
 
-                              Container(
-                                height: 40,
-                                padding: const EdgeInsets.all(8),
-                                margin: const EdgeInsetsDirectional.only(
-                                  end: 20,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white38,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Text(
-                                  "Get Started",
-                                  style: TextStyle(color: Colors.white),
+                              InkWell(
+                                onTap: (){
+                                  navigateTo(context, RegisterScreen());
+                                },
+                                child: Container(
+                                  height: 40,
+                                  padding: const EdgeInsets.all(8),
+                                  margin: const EdgeInsetsDirectional.only(
+                                    end: 20,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white24,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Text(
+                                    "Get Started",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                                 ),
                               ),
                             ],
@@ -86,7 +92,6 @@ class LoginScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 20),
 
-                          // The small bridge connector
                           Container(
                             width: double.infinity,
                             margin: const EdgeInsets.symmetric(horizontal: 35),
@@ -103,9 +108,8 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
 
-                    // Part B: The White Container (Fills remaining space)
                     SliverFillRemaining(
-                      hasScrollBody: false, // This allows Spacer() to work!
+                      hasScrollBody: false,
                       child: Container(
                         padding: const EdgeInsets.only(top: 20, left: 25,right: 25),
                         decoration: const BoxDecoration(
