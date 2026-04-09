@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:tunisian_trip_planner/features/auth/login_cubit/login_cubit.dart';
 import 'package:tunisian_trip_planner/features/auth/login_cubit/login_states.dart';
-import 'package:tunisian_trip_planner/features/auth/privacy_screen.dart';
-import 'package:tunisian_trip_planner/features/auth/register_screen.dart';
+import 'package:tunisian_trip_planner/features/auth/widgets/privacy_screen.dart';
+import 'package:tunisian_trip_planner/features/auth/widgets/register_screen.dart';
 import 'package:tunisian_trip_planner/shared/widgets/components.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 
