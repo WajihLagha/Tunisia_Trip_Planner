@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 //  PASTEL GREENERY COLOR PALETTE
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class AppColors {
   AppColors._();
 
@@ -21,7 +21,7 @@ class AppColors {
 
   // Semantic aliases
   static const Color primary      = green600;   // #469D89
-  static const Color primaryDark  = green950;   // #036666 – dark mode primary
+  static const Color primaryDark  = green950;   // #036666 â€“ dark mode primary
   static const Color secondary    = green300;   // #78C6A3
   static const Color accent       = green100;   // #99E2B4
 
@@ -38,19 +38,23 @@ class AppColors {
   static const Color navBarDark       = Color(0xFF036666); // deep teal
 
   static const Color errorColor       = Color(0xFFD94F3D);
+
+  // Semantic UI helpers
+  static const Color mutedText        = Color(0xFF5A8A80); // labels, hints
+  static const Color borderColor      = Color(0xFFD4EDE5); // card / input borders
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 //  TYPOGRAPHY
-//  Display  → Playfair Display (editorial, travel-magazine feel)
-//  Body     → DM Sans (clean, modern, highly legible)
-// ─────────────────────────────────────────────
+//  Display  â†’ Playfair Display (editorial, travel-magazine feel)
+//  Body     â†’ DM Sans (clean, modern, highly legible)
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class AppTextTheme {
   AppTextTheme._();
 
   static TextTheme _build(Color primary, Color secondary) {
     return TextTheme(
-      // ── Display / Hero ──────────────────────
+      // â”€â”€ Display / Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       displayLarge: GoogleFonts.playfairDisplay(
         fontSize: 57, fontWeight: FontWeight.w700, color: primary, letterSpacing: -1.5,
       ),
@@ -61,7 +65,7 @@ class AppTextTheme {
         fontSize: 36, fontWeight: FontWeight.w600, color: primary,
       ),
 
-      // ── Headlines ───────────────────────────
+      // â”€â”€ Headlines â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       headlineLarge: GoogleFonts.playfairDisplay(
         fontSize: 32, fontWeight: FontWeight.w600, color: primary,
       ),
@@ -72,7 +76,7 @@ class AppTextTheme {
         fontSize: 24, fontWeight: FontWeight.w600, color: primary,
       ),
 
-      // ── Titles ──────────────────────────────
+      // â”€â”€ Titles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       titleLarge: GoogleFonts.dmSans(
         fontSize: 22, fontWeight: FontWeight.w600, color: primary,
       ),
@@ -83,7 +87,7 @@ class AppTextTheme {
         fontSize: 14, fontWeight: FontWeight.w500, color: primary, letterSpacing: 0.1,
       ),
 
-      // ── Body ────────────────────────────────
+      // â”€â”€ Body â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       bodyLarge: GoogleFonts.dmSans(
         fontSize: 16, fontWeight: FontWeight.w400, color: secondary, height: 1.6,
       ),
@@ -94,7 +98,7 @@ class AppTextTheme {
         fontSize: 12, fontWeight: FontWeight.w400, color: secondary, height: 1.4,
       ),
 
-      // ── Labels ──────────────────────────────
+      // â”€â”€ Labels â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       labelLarge: GoogleFonts.dmSans(
         fontSize: 14, fontWeight: FontWeight.w600, color: primary, letterSpacing: 0.5,
       ),
@@ -109,18 +113,18 @@ class AppTextTheme {
 
   static final TextTheme light = _build(
     AppColors.onSurfaceLight,
-    AppColors.onSurfaceLight.withOpacity(0.6),
+    AppColors.onSurfaceLight.withValues(alpha: 0.6),
   );
 
   static final TextTheme dark = _build(
     AppColors.onSurfaceDark,
-    AppColors.onSurfaceDark.withOpacity(0.6),
+    AppColors.onSurfaceDark.withValues(alpha: 0.6),
   );
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 //  LIGHT THEME
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 ThemeData get lightTheme {
   final ColorScheme cs = ColorScheme(
     brightness: Brightness.light,
@@ -139,7 +143,7 @@ ThemeData get lightTheme {
     surface:          AppColors.surfaceLight,
     onSurface:        AppColors.onSurfaceLight,
     surfaceContainerHighest: AppColors.surfaceVariantL,
-    onSurfaceVariant: AppColors.onSurfaceLight.withOpacity(0.7),
+    onSurfaceVariant: AppColors.onSurfaceLight.withValues(alpha: 0.7),
     outline:          AppColors.green300,
     shadow:           Colors.black12,
     inverseSurface:   AppColors.surfaceDark,
@@ -153,7 +157,7 @@ ThemeData get lightTheme {
     textTheme:      AppTextTheme.light,
     scaffoldBackgroundColor: AppColors.surfaceLight,
 
-    // ── AppBar ────────────────────────────────
+    // â”€â”€ AppBar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     appBarTheme: AppBarTheme(
       backgroundColor:    AppColors.surfaceLight,
       foregroundColor:    AppColors.onSurfaceLight,
@@ -165,7 +169,7 @@ ThemeData get lightTheme {
       iconTheme: const IconThemeData(color: AppColors.primary),
     ),
 
-    // ── BottomNavigationBar ──────────────────
+    // â”€â”€ BottomNavigationBar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor:      AppColors.navBarLight,
       selectedItemColor:    AppColors.primary,
@@ -176,7 +180,7 @@ ThemeData get lightTheme {
       elevation:            0,
     ),
 
-    // ── FloatingActionButton ─────────────────
+    // â”€â”€ FloatingActionButton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: AppColors.primary,
       foregroundColor: Colors.white,
@@ -184,7 +188,7 @@ ThemeData get lightTheme {
       shape:           CircleBorder(),
     ),
 
-    // ── ElevatedButton ───────────────────────
+    // â”€â”€ ElevatedButton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
@@ -196,7 +200,7 @@ ThemeData get lightTheme {
       ),
     ),
 
-    // ── OutlinedButton ───────────────────────
+    // â”€â”€ OutlinedButton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.primary,
@@ -207,7 +211,7 @@ ThemeData get lightTheme {
       ),
     ),
 
-    // ── TextButton ───────────────────────────
+    // â”€â”€ TextButton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: AppColors.primary,
@@ -215,7 +219,7 @@ ThemeData get lightTheme {
       ),
     ),
 
-    // ── InputDecoration ──────────────────────
+    // â”€â”€ InputDecoration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     inputDecorationTheme: InputDecorationTheme(
       filled:           true,
       fillColor:        AppColors.surfaceVariantL,
@@ -232,10 +236,10 @@ ThemeData get lightTheme {
         borderRadius: BorderRadius.circular(12),
         borderSide:   const BorderSide(color: AppColors.primary, width: 1.5),
       ),
-      hintStyle: GoogleFonts.dmSans(color: AppColors.onSurfaceLight.withOpacity(0.4)),
+      hintStyle: GoogleFonts.dmSans(color: AppColors.onSurfaceLight.withValues(alpha: 0.4)),
     ),
 
-    // ── Card ──────────────────────────────────
+    // â”€â”€ Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     cardTheme: CardThemeData(
       color:     Colors.white,
       elevation: 0,
@@ -243,7 +247,7 @@ ThemeData get lightTheme {
       margin:    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     ),
 
-    // ── Chip ─────────────────────────────────
+    // â”€â”€ Chip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     chipTheme: ChipThemeData(
       backgroundColor:  AppColors.surfaceVariantL,
       selectedColor:    AppColors.primary,
@@ -252,17 +256,17 @@ ThemeData get lightTheme {
       padding:          const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
     ),
 
-    // ── Divider ──────────────────────────────
+    // â”€â”€ Divider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     dividerTheme: DividerThemeData(
-      color:     AppColors.green200.withOpacity(0.4),
+      color:     AppColors.green200.withValues(alpha: 0.4),
       thickness: 1,
     ),
   );
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 //  DARK THEME
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 ThemeData get darkTheme {
   final ColorScheme cs = ColorScheme(
     brightness: Brightness.dark,
@@ -281,7 +285,7 @@ ThemeData get darkTheme {
     surface:          AppColors.surfaceDark,
     onSurface:        AppColors.onSurfaceDark,
     surfaceContainerHighest: AppColors.surfaceVariantD,
-    onSurfaceVariant: AppColors.onSurfaceDark.withOpacity(0.7),
+    onSurfaceVariant: AppColors.onSurfaceDark.withValues(alpha: 0.7),
     outline:          AppColors.green800,
     shadow:           Colors.black54,
     inverseSurface:   AppColors.surfaceLight,
@@ -295,7 +299,7 @@ ThemeData get darkTheme {
     textTheme:      AppTextTheme.dark,
     scaffoldBackgroundColor: AppColors.surfaceDark,
 
-    // ── AppBar ────────────────────────────────
+    // â”€â”€ AppBar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     appBarTheme: AppBarTheme(
       backgroundColor:  AppColors.surfaceDark,
       foregroundColor:  AppColors.onSurfaceDark,
@@ -307,7 +311,7 @@ ThemeData get darkTheme {
       iconTheme: const IconThemeData(color: AppColors.green300),
     ),
 
-    // ── BottomNavigationBar ──────────────────
+    // â”€â”€ BottomNavigationBar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor:      AppColors.navBarDark,
       selectedItemColor:    AppColors.green100,
@@ -318,7 +322,7 @@ ThemeData get darkTheme {
       elevation:            0,
     ),
 
-    // ── FloatingActionButton ─────────────────
+    // â”€â”€ FloatingActionButton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: AppColors.green300,
       foregroundColor: AppColors.green950,
@@ -326,7 +330,7 @@ ThemeData get darkTheme {
       shape:           CircleBorder(),
     ),
 
-    // ── ElevatedButton ───────────────────────
+    // â”€â”€ ElevatedButton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.green300,
@@ -338,7 +342,7 @@ ThemeData get darkTheme {
       ),
     ),
 
-    // ── OutlinedButton ───────────────────────
+    // â”€â”€ OutlinedButton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.green300,
@@ -349,7 +353,7 @@ ThemeData get darkTheme {
       ),
     ),
 
-    // ── TextButton ───────────────────────────
+    // â”€â”€ TextButton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: AppColors.green300,
@@ -357,7 +361,7 @@ ThemeData get darkTheme {
       ),
     ),
 
-    // ── InputDecoration ──────────────────────
+    // â”€â”€ InputDecoration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     inputDecorationTheme: InputDecorationTheme(
       filled:         true,
       fillColor:      AppColors.surfaceVariantD,
@@ -374,10 +378,10 @@ ThemeData get darkTheme {
         borderRadius: BorderRadius.circular(12),
         borderSide:   const BorderSide(color: AppColors.green300, width: 1.5),
       ),
-      hintStyle: GoogleFonts.dmSans(color: AppColors.onSurfaceDark.withOpacity(0.4)),
+      hintStyle: GoogleFonts.dmSans(color: AppColors.onSurfaceDark.withValues(alpha: 0.4)),
     ),
 
-    // ── Card ──────────────────────────────────
+    // â”€â”€ Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     cardTheme: CardThemeData(
       color:     AppColors.surfaceVariantD,
       elevation: 0,
@@ -385,7 +389,7 @@ ThemeData get darkTheme {
       margin:    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     ),
 
-    // ── Chip ─────────────────────────────────
+    // â”€â”€ Chip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     chipTheme: ChipThemeData(
       backgroundColor:  AppColors.surfaceVariantD,
       selectedColor:    AppColors.green700,
@@ -394,9 +398,9 @@ ThemeData get darkTheme {
       padding:          const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
     ),
 
-    // ── Divider ──────────────────────────────
+    // â”€â”€ Divider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     dividerTheme: DividerThemeData(
-      color:     AppColors.green800.withOpacity(0.5),
+      color:     AppColors.green800.withValues(alpha: 0.5),
       thickness: 1,
     ),
   );

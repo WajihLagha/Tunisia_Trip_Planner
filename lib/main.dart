@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:hive_flutter/adapters.dart';
-import 'package:tunisian_trip_planner/features/home_layout/widgets/home_layout.dart';
+import 'package:tunisian_trip_planner/features/auth/widgets/profile_setup_screen.dart';
 import 'package:tunisian_trip_planner/shared/network/local/cache_helper.dart';
 import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
 
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
         primaryColor: HexColor("#67b99a"),
         primarySwatch: Colors.teal,
       ),
-      home: HomeLayout(),
+      home: ProfileSetupScreen(),
     );
   }
 }

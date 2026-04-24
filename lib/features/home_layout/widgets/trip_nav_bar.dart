@@ -1,25 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  TripBottomNavBar
-//
-//  Mimics the design from the screenshots:
-//    • Light mode  → white pill-shaped bar, green floating center button
-//      with a notch / bump cut-out.
-//    • Dark mode   → deep-teal pill bar, lighter green floating button.
-//
-//  Usage:
-//    TripBottomNavBar(
-//      currentIndex: _selectedIndex,
-//      onTap:        (i) => setState(() => _selectedIndex = i),
-//      onFabTap:     () { /* open explore / camera / etc. */ },
-//    )
-//
-//  Put it inside a Scaffold like this:
-//    bottomNavigationBar: TripBottomNavBar( … ),
-//    floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-// ─────────────────────────────────────────────────────────────────────────────
 
 class TripBottomNavBar extends StatelessWidget {
   const TripBottomNavBar({
@@ -35,7 +16,7 @@ class TripBottomNavBar extends StatelessWidget {
 
   static const _items = [
     _NavItem(icon: Icons.explore_rounded,    label: 'Explore'),
-    _NavItem(icon: Icons.favorite_rounded,   label: 'Favourite'),
+    _NavItem(icon: Icons.hotel_rounded,      label: 'Hotel'),
     _NavItem(icon: null,                     label: ''),   // FAB placeholder
     _NavItem(icon: Icons.directions_car_rounded, label: 'Cars'),
     _NavItem(icon: Icons.person_rounded,     label: 'Profile'),
@@ -60,7 +41,7 @@ class TripBottomNavBar extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         child: SizedBox(
-          height: 70,
+          height: 80,
           child: Stack(
             clipBehavior: Clip.none,
             alignment: Alignment.bottomCenter,
@@ -80,7 +61,7 @@ class TripBottomNavBar extends StatelessWidget {
                 right: 0,
                 bottom: 0,
                 child: SizedBox(
-                  height: 60,
+                  height: 70,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: List.generate(_items.length, (i) {
@@ -108,7 +89,7 @@ class TripBottomNavBar extends StatelessWidget {
 
               // ── Floating Action Button ───────────────────────────────────
               Positioned(
-                bottom: 28,
+                bottom: 34,
                 child: GestureDetector(
                   onTap: onFabTap,
                   child: AnimatedContainer(
