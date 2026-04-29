@@ -1,13 +1,13 @@
 enum TransportType {
-  TAXI,
-  CAR_RENTAL,
-  BUS,
-  OTHER;
+  taxi,
+  carRental,
+  bus,
+  other;
 
   static TransportType fromJson(String value) {
     return TransportType.values.firstWhere(
-          (e) => e.name == value.toUpperCase(),
-      orElse: () => TransportType.OTHER,
+          (e) => e.name.toUpperCase() == value.toUpperCase().replaceAll('_', ''),
+      orElse: () => TransportType.other,
     );
   }
 
@@ -15,10 +15,10 @@ enum TransportType {
 
   String get label {
     switch (this) {
-      case TransportType.TAXI:       return 'Taxi';
-      case TransportType.CAR_RENTAL: return 'Car Rental';
-      case TransportType.BUS:        return 'Bus';
-      case TransportType.OTHER:      return 'Other';
+      case TransportType.taxi:       return 'Taxi';
+      case TransportType.carRental: return 'Car Rental';
+      case TransportType.bus:        return 'Bus';
+      case TransportType.other:      return 'Other';
     }
   }
 }

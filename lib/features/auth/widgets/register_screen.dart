@@ -199,7 +199,7 @@ class RegisterScreen extends StatelessWidget {
                                 onTap: () {
                                   if (formKey.currentState!.validate()) {
                                     // Perform Registration Logic
-                                    print("Register Validated");
+                                    debugPrint("Register Validated");
                                   }
                                 },
                                 child: Container(
@@ -215,7 +215,7 @@ class RegisterScreen extends StatelessWidget {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: HexColor("#14746f").withOpacity(0.3),
+                                        color: HexColor("#14746f").withValues(alpha: 0.3),
                                         blurRadius: 10,
                                         offset: const Offset(0, 5),
                                       ),

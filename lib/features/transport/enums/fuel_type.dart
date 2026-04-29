@@ -1,13 +1,13 @@
 enum FuelType {
-  PETROL,
-  DIESEL,
-  ELECTRIC,
-  HYBRID;
+  petrol,
+  diesel,
+  electric,
+  hybrid;
 
   static FuelType fromJson(String value) {
     return FuelType.values.firstWhere(
-          (e) => e.name == value.toUpperCase(),
-      orElse: () => FuelType.PETROL,
+          (e) => e.name.toUpperCase() == value.toUpperCase(),
+      orElse: () => FuelType.petrol,
     );
   }
 
@@ -15,10 +15,10 @@ enum FuelType {
 
   String get label {
     switch (this) {
-      case FuelType.PETROL:   return 'Petrol';
-      case FuelType.DIESEL:   return 'Diesel';
-      case FuelType.ELECTRIC: return 'Electric';
-      case FuelType.HYBRID:   return 'Hybrid';
+      case FuelType.petrol:   return 'Petrol';
+      case FuelType.diesel:   return 'Diesel';
+      case FuelType.electric: return 'Electric';
+      case FuelType.hybrid:   return 'Hybrid';
     }
   }
 }

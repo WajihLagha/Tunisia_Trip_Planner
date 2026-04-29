@@ -25,8 +25,8 @@ class TransportModel {
     this.id,
     required this.name,
     this.description,
-    this.type = TransportType.CAR_RENTAL,
-    this.fuelType = FuelType.PETROL,
+    this.type = TransportType.carRental,
+    this.fuelType = FuelType.petrol,
     this.rating = 0.0,
     this.reviewCount = 0,
     required this.city,
@@ -48,10 +48,10 @@ class TransportModel {
       description: json['description'] as String?,
       type: json['type'] != null
           ? TransportType.fromJson(json['type'] as String)
-          : TransportType.OTHER,
+          : TransportType.other,
       fuelType: json['fuelType'] != null
           ? FuelType.fromJson(json['fuelType'] as String)
-          : FuelType.PETROL,
+          : FuelType.petrol,
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviewCount: json['reviewCount'] as int? ?? 0,
       city: json['city'] as String? ?? '',

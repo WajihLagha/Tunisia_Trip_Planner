@@ -12,9 +12,9 @@ import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
 
-  var nameController = TextEditingController();
-  var passwordController = TextEditingController();
-  var formKey = GlobalKey<FormState>();
+  final nameController = TextEditingController();
+  final passwordController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {

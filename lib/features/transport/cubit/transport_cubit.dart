@@ -54,8 +54,8 @@ class TransportCubit extends Cubit<TransportStates> {
         name: 'Sahara Explorers',
         description:
             'Experience the Mediterranean coast with our curated fleet of luxury vehicles. We specialize in providing seamless journeys from the bustling medinas to the serene oasis resorts. Every vehicle is meticulously maintained to ensure your comfort, safety, and a touch of elegance on every road.',
-        type: TransportType.CAR_RENTAL,
-        fuelType: FuelType.DIESEL,
+        type: TransportType.carRental,
+        fuelType: FuelType.diesel,
         rating: 4.9,
         reviewCount: 124,
         city: 'Tunis',
@@ -75,7 +75,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Santorini Black',
             vehicleCapacity: 5,
             vehiclePrice: 180,
-            fuelType: FuelType.DIESEL,
+            fuelType: FuelType.diesel,
             quantity: 2,
             availabilities: const [
               VehicleAvailabilityModel(id: 1, vehicleId: 1, isAvailable: true),
@@ -90,7 +90,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Carrara White',
             vehicleCapacity: 5,
             vehiclePrice: 350,
-            fuelType: FuelType.PETROL,
+            fuelType: FuelType.petrol,
             quantity: 1,
             availabilities: const [
               VehicleAvailabilityModel(id: 2, vehicleId: 2, isAvailable: true),
@@ -105,7 +105,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Obsidian Black',
             vehicleCapacity: 5,
             vehiclePrice: 450,
-            fuelType: FuelType.DIESEL,
+            fuelType: FuelType.diesel,
             quantity: 1,
             availabilities: const [
               VehicleAvailabilityModel(id: 3, vehicleId: 3, isAvailable: true),
@@ -118,8 +118,8 @@ class TransportCubit extends Cubit<TransportStates> {
         name: 'Azure Coast Travel',
         description:
             'Coastal transport and excursion services along the Mediterranean. From Sousse\'s medina to the pristine beaches of Port El Kantaoui, we make every journey an experience.',
-        type: TransportType.CAR_RENTAL,
-        fuelType: FuelType.PETROL,
+        type: TransportType.carRental,
+        fuelType: FuelType.petrol,
         rating: 4.7,
         reviewCount: 89,
         city: 'Sousse',
@@ -139,7 +139,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Silver Metallic',
             vehicleCapacity: 5,
             vehiclePrice: 65,
-            fuelType: FuelType.PETROL,
+            fuelType: FuelType.petrol,
             quantity: 3,
             availabilities: const [
               VehicleAvailabilityModel(id: 4, vehicleId: 4, isAvailable: true),
@@ -154,7 +154,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Amazon Grey',
             vehicleCapacity: 5,
             vehiclePrice: 95,
-            fuelType: FuelType.DIESEL,
+            fuelType: FuelType.diesel,
             quantity: 2,
             availabilities: const [
               VehicleAvailabilityModel(id: 5, vehicleId: 5, isAvailable: false),
@@ -167,8 +167,8 @@ class TransportCubit extends Cubit<TransportStates> {
         name: 'Medina Heritage Tours',
         description:
             'Cultural heritage transport services in historic city centers. Explore Tunis, Carthage, and Sidi Bou Said with our knowledgeable drivers.',
-        type: TransportType.TAXI,
-        fuelType: FuelType.HYBRID,
+        type: TransportType.taxi,
+        fuelType: FuelType.hybrid,
         rating: 4.8,
         reviewCount: 210,
         city: 'Tunis',
@@ -188,7 +188,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Selenite Grey',
             vehicleCapacity: 7,
             vehiclePrice: 150,
-            fuelType: FuelType.HYBRID,
+            fuelType: FuelType.hybrid,
             quantity: 2,
             availabilities: const [
               VehicleAvailabilityModel(id: 6, vehicleId: 6, isAvailable: true),
@@ -203,7 +203,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Starlight Blue',
             vehicleCapacity: 7,
             vehiclePrice: 120,
-            fuelType: FuelType.DIESEL,
+            fuelType: FuelType.diesel,
             quantity: 1,
             availabilities: const [
               VehicleAvailabilityModel(id: 7, vehicleId: 7, isAvailable: true),
@@ -216,8 +216,8 @@ class TransportCubit extends Cubit<TransportStates> {
         name: 'Carthage Express',
         description:
             'Fast and reliable bus service connecting major Tunisian cities. Comfortable seats, AC, and WiFi on board.',
-        type: TransportType.BUS,
-        fuelType: FuelType.DIESEL,
+        type: TransportType.bus,
+        fuelType: FuelType.diesel,
         rating: 4.5,
         reviewCount: 312,
         city: 'Ariana',
@@ -237,7 +237,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'White',
             vehicleCapacity: 50,
             vehiclePrice: 25,
-            fuelType: FuelType.DIESEL,
+            fuelType: FuelType.diesel,
             quantity: 5,
             availabilities: const [
               VehicleAvailabilityModel(id: 8, vehicleId: 8, isAvailable: true),
@@ -250,8 +250,8 @@ class TransportCubit extends Cubit<TransportStates> {
         name: 'Djerba Sun Rides',
         description:
             'Island transport with scenic coastal routes. Electric vehicles for a green travel experience on Djerba island.',
-        type: TransportType.CAR_RENTAL,
-        fuelType: FuelType.ELECTRIC,
+        type: TransportType.carRental,
+        fuelType: FuelType.electric,
         rating: 4.6,
         reviewCount: 67,
         city: 'Médenine',
@@ -271,7 +271,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Pearl White',
             vehicleCapacity: 5,
             vehiclePrice: 200,
-            fuelType: FuelType.ELECTRIC,
+            fuelType: FuelType.electric,
             quantity: 2,
             availabilities: const [
               VehicleAvailabilityModel(id: 9, vehicleId: 9, isAvailable: true),
@@ -286,7 +286,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Highland Grey',
             vehicleCapacity: 5,
             vehiclePrice: 80,
-            fuelType: FuelType.ELECTRIC,
+            fuelType: FuelType.electric,
             quantity: 3,
             availabilities: const [
               VehicleAvailabilityModel(id: 10, vehicleId: 10, isAvailable: true),
@@ -299,8 +299,8 @@ class TransportCubit extends Cubit<TransportStates> {
         name: 'Sfax City Cabs',
         description:
             'Reliable taxi network covering greater Sfax area. Available 24/7 for airport transfers and city rides.',
-        type: TransportType.TAXI,
-        fuelType: FuelType.PETROL,
+        type: TransportType.taxi,
+        fuelType: FuelType.petrol,
         rating: 4.3,
         reviewCount: 156,
         city: 'Sfax',
@@ -320,7 +320,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Iron Grey',
             vehicleCapacity: 5,
             vehiclePrice: 30,
-            fuelType: FuelType.PETROL,
+            fuelType: FuelType.petrol,
             quantity: 8,
             availabilities: const [
               VehicleAvailabilityModel(id: 11, vehicleId: 11, isAvailable: false),
@@ -333,8 +333,8 @@ class TransportCubit extends Cubit<TransportStates> {
         name: 'Kairouan Heritage Rides',
         description:
             'Comfortable rides through the holy city and surrounding areas. Discover the Great Mosque and historic sites in style.',
-        type: TransportType.CAR_RENTAL,
-        fuelType: FuelType.HYBRID,
+        type: TransportType.carRental,
+        fuelType: FuelType.hybrid,
         rating: 4.4,
         reviewCount: 93,
         city: 'Kairouan',
@@ -354,7 +354,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Lunar Rock',
             vehicleCapacity: 5,
             vehiclePrice: 110,
-            fuelType: FuelType.HYBRID,
+            fuelType: FuelType.hybrid,
             quantity: 2,
             availabilities: const [
               VehicleAvailabilityModel(id: 12, vehicleId: 12, isAvailable: true),
@@ -369,7 +369,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Snow White Pearl',
             vehicleCapacity: 5,
             vehiclePrice: 85,
-            fuelType: FuelType.DIESEL,
+            fuelType: FuelType.diesel,
             quantity: 1,
             availabilities: const [
               VehicleAvailabilityModel(id: 13, vehicleId: 13, isAvailable: true),
@@ -382,8 +382,8 @@ class TransportCubit extends Cubit<TransportStates> {
         name: 'Bizerte Blue Lagoon Transport',
         description:
             'Scenic coastal transport services in northern Tunisia. Perfect for exploring Bizerte\'s old port and beautiful lagoons.',
-        type: TransportType.CAR_RENTAL,
-        fuelType: FuelType.PETROL,
+        type: TransportType.carRental,
+        fuelType: FuelType.petrol,
         rating: 4.7,
         reviewCount: 78,
         city: 'Bizerte',
@@ -403,7 +403,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Slate Grey',
             vehicleCapacity: 5,
             vehiclePrice: 55,
-            fuelType: FuelType.PETROL,
+            fuelType: FuelType.petrol,
             quantity: 3,
             availabilities: const [
               VehicleAvailabilityModel(id: 14, vehicleId: 14, isAvailable: true),
@@ -416,8 +416,8 @@ class TransportCubit extends Cubit<TransportStates> {
         name: 'Tozeur Oasis Shuttle',
         description:
             'Desert oasis excursions and airport transfers. Explore Chebika, Tamerza, and Mides canyons with experienced local guides.',
-        type: TransportType.BUS,
-        fuelType: FuelType.DIESEL,
+        type: TransportType.bus,
+        fuelType: FuelType.diesel,
         rating: 4.8,
         reviewCount: 45,
         city: 'Tozeur',
@@ -437,7 +437,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Magnetic Grey',
             vehicleCapacity: 7,
             vehiclePrice: 250,
-            fuelType: FuelType.DIESEL,
+            fuelType: FuelType.diesel,
             quantity: 2,
             availabilities: const [
               VehicleAvailabilityModel(id: 15, vehicleId: 15, isAvailable: true),
@@ -452,7 +452,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Arctic White',
             vehicleCapacity: 16,
             vehiclePrice: 180,
-            fuelType: FuelType.DIESEL,
+            fuelType: FuelType.diesel,
             quantity: 1,
             availabilities: const [
               VehicleAvailabilityModel(id: 16, vehicleId: 16, isAvailable: false),
@@ -465,8 +465,8 @@ class TransportCubit extends Cubit<TransportStates> {
         name: 'Nabeul Comfort Cars',
         description:
             'Premium car rental for Cap Bon peninsula exploration. From Hammamet beaches to Kelibia fortress, travel in comfort.',
-        type: TransportType.CAR_RENTAL,
-        fuelType: FuelType.PETROL,
+        type: TransportType.carRental,
+        fuelType: FuelType.petrol,
         rating: 4.5,
         reviewCount: 102,
         city: 'Nabeul',
@@ -486,7 +486,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Atlantic Blue',
             vehicleCapacity: 5,
             vehiclePrice: 70,
-            fuelType: FuelType.PETROL,
+            fuelType: FuelType.petrol,
             quantity: 4,
             availabilities: const [
               VehicleAvailabilityModel(id: 17, vehicleId: 17, isAvailable: true),
@@ -501,7 +501,7 @@ class TransportCubit extends Cubit<TransportStates> {
             vehicleColor: 'Carbon Black',
             vehicleCapacity: 5,
             vehiclePrice: 160,
-            fuelType: FuelType.DIESEL,
+            fuelType: FuelType.diesel,
             quantity: 1,
             availabilities: const [
               VehicleAvailabilityModel(id: 18, vehicleId: 18, isAvailable: true),

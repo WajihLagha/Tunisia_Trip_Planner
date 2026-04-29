@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -38,6 +38,10 @@ class AppColors {
   static const Color navBarDark       = Color(0xFF036666); // deep teal
 
   static const Color errorColor       = Color(0xFFD94F3D);
+
+  // Helpers
+  static const Color backgroundLight  = surfaceLight;
+  static const Color backgroundDark   = surfaceDark;
 
   // Semantic UI helpers
   static const Color mutedText        = Color(0xFF5A8A80); // labels, hints

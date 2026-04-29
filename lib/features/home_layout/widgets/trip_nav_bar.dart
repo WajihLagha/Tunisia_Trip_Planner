@@ -16,7 +16,7 @@ class TripBottomNavBar extends StatelessWidget {
 
   static const _items = [
     _NavItem(icon: Icons.explore_rounded,    label: 'Explore'),
-    _NavItem(icon: Icons.hotel_rounded,      label: 'Hotel'),
+    _NavItem(icon: Icons.hotel_rounded,      label: 'Accommodation'),
     _NavItem(icon: null,                     label: ''),   // FAB placeholder
     _NavItem(icon: Icons.directions_car_rounded, label: 'Cars'),
     _NavItem(icon: Icons.person_rounded,     label: 'Profile'),
@@ -101,7 +101,7 @@ class TripBottomNavBar extends StatelessWidget {
                       shape:     BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color:       fabBgColor.withOpacity(0.4),
+                          color:       fabBgColor.withValues(alpha: 0.4),
                           blurRadius:  16,
                           spreadRadius: 2,
                           offset:      const Offset(0, 4),
@@ -172,12 +172,12 @@ class _NavButton extends StatelessWidget {
                   shadows: selected
                       ? [
                           Shadow(
-                            color: selectedColor.withOpacity(0.5),
+                            color: selectedColor.withValues(alpha: 0.5),
                             blurRadius: 16,
                             offset: const Offset(0, 6),
                           ),
                           Shadow(
-                            color: selectedColor.withOpacity(0.3),
+                            color: selectedColor.withValues(alpha: 0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -248,7 +248,7 @@ class _BumpBarPainter extends CustomPainter {
 
     // Drop shadow
     final shadowPaint = Paint()
-      ..color       = Colors.black.withOpacity(isDark ? 0.3 : 0.08)
+      ..color       = Colors.black.withValues(alpha: isDark ? 0.3 : 0.08)
       ..maskFilter  = const MaskFilter.blur(BlurStyle.normal, 12);
 
     final path = _buildPath(size);

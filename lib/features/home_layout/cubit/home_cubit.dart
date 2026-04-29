@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tunisian_trip_planner/features/accommodation_screen.dart';
 import 'package:tunisian_trip_planner/features/explore_screen.dart';
 import 'package:tunisian_trip_planner/features/transport/transport_screen.dart';
-import 'package:tunisian_trip_planner/features/hotel_screen.dart';
 import 'package:tunisian_trip_planner/features/home_layout/cubit/home_states.dart';
 import 'package:tunisian_trip_planner/features/profile/profile_screen.dart';
 
@@ -15,7 +15,7 @@ class HomeCubit extends Cubit<HomeStates> {
 
   List<Widget> bottomScreen = [
     const ExploreScreen(),
-    const HotelScreen(),
+    const AccommodationScreen(),
     const TransportScreen(),
     const ProfileScreen(),
   ];
