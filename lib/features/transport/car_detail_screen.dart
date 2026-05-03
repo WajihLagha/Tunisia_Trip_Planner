@@ -401,6 +401,7 @@ class CarDetailScreen extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -440,7 +441,6 @@ class CarDetailScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const Spacer(),
             SizedBox(
               height: 52,
               child: ElevatedButton(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tunisian_trip_planner/features/add_place_screen.dart';
+import 'package:tunisian_trip_planner/features/add_stay_screen.dart';
 import 'package:tunisian_trip_planner/features/booking_screen.dart';
 import 'package:tunisian_trip_planner/features/home_layout/cubit/home_cubit.dart';
 import 'package:tunisian_trip_planner/features/home_layout/cubit/home_states.dart';
@@ -11,24 +13,30 @@ class HomeLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return BlocProvider(
       create: (BuildContext context) => HomeCubit(),
-      child: BlocConsumer<HomeCubit,HomeStates>(
-        listener: (context, state) {
-
-        },
+      child: BlocConsumer<HomeCubit, HomeStates>(
+        listener: (context, state) {},
         builder: (context, state) {
           final cubit = HomeCubit.get(context);
           return Scaffold(
             extendBody: true,
-            body: cubit.bottomScreen[cubit.currentIndex],
+            body: SafeArea(
+              bottom: false,
+              child: cubit.bottomScreen[cubit.currentIndex],
+            ),
             bottomNavigationBar: TripBottomNavBar(
-                currentIndex: cubit.currentIndex,
-                onTap: cubit.changeTripNavBar,
-                onFabTap: () {
-                  navigateTo(context, BookingScreen());
-                },
+              currentIndex: cubit.currentIndex,
+              onTap: cubit.changeTripNavBar,
+              onStartNewTrip: () {
+                navigateTo(context, const BookingScreen());
+              },
+              onAddPlace: () {
+                navigateTo(context, const AddPlaceScreen());
+              },
+              onAddStay: () {
+                navigateTo(context, const AddStayScreen());
+              },
             ),
           );
         },

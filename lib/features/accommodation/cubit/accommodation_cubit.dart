@@ -19,6 +19,8 @@ class AccommodationCubit extends Cubit<AccommodationStates> {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 800));
 
+    if (isClosed) return;
+
     try {
       final accommodations = MockAccommodationData.accommodations;
       emit(AccommodationLoadedState(

@@ -125,11 +125,13 @@ class _TransportView extends StatelessWidget {
                   AppColors.green700,
                 ],
         ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(80),
+        ),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -155,7 +157,6 @@ class _TransportView extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 

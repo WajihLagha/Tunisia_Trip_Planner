@@ -13,17 +13,14 @@ class StackedRoomCarousel extends StatefulWidget {
   State<StackedRoomCarousel> createState() => _StackedRoomCarouselState();
 }
 
-class _StackedRoomCarouselState extends State<StackedRoomCarousel>
-    with SingleTickerProviderStateMixin {
+class _StackedRoomCarouselState extends State<StackedRoomCarousel> {
   late PageController _pageController;
-  final int _initialPage = 10000;
-  
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController(
-      initialPage: _initialPage,
-      viewportFraction: 1.0, // Full width for stacking logic
+      viewportFraction: 0.78, // Show prev/next cards peeking at corners
     );
   }
 
@@ -38,68 +35,37 @@ class _StackedRoomCarouselState extends State<StackedRoomCarousel>
     if (widget.rooms.isEmpty) return const SizedBox.shrink();
 
     return SizedBox(
-      height: 400,
+      height: 240,
       child: PageView.builder(
         controller: _pageController,
         clipBehavior: Clip.none,
+        itemCount: widget.rooms.length,
         itemBuilder: (context, index) {
           return AnimatedBuilder(
             animation: _pageController,
             builder: (context, child) {
               double value = 0;
               if (_pageController.position.haveDimensions) {
-                value = _pageController.page! - index;
-              } else {
-                value = (_initialPage - index).toDouble();
+                value = (_pageController.page ?? 0) - index;
               }
 
-              // The card is being swiped away
-              if (value > 0) {
-                return Opacity(
-                  opacity: max(0.0, 1.0 - value),
-                  child: Transform.translate(
-                    offset: Offset(0, 0), // Use default page view scroll
-                    child: Transform.scale(
-                      scale: max(0.8, 1.0 - (value * 0.1)),
-                      child: child,
-                    ),
+              // Scale: current card = 1.0, adjacent cards smaller
+              final scale = max(0.88, 1.0 - value.abs() * 0.12);
+              // Slight vertical offset for depth
+              final dy = value.abs() * 10.0;
+
+              return Transform.translate(
+                offset: Offset(0, dy),
+                child: Transform.scale(
+                  scale: scale,
+                  child: Opacity(
+                    opacity: max(0.6, 1.0 - value.abs() * 0.3),
+                    child: child,
                   ),
-                );
-              } 
-              // Cards stacked behind
-              else {
-                double absValue = value.abs();
-                
-                // Stack up to 3 cards behind
-                if (absValue > 3) return const SizedBox.shrink();
-
-                // Counteract the default horizontal offset of PageView to stack them in the center
-                // PageView automatically shifts items by `value * screenWidth`
-                // We must calculate the exact width to counteract it. 
-                // Using LayoutBuilder to get exact width is better, but since viewportFraction is 1.0, 
-                // we can use MediaQuery width or let PageView handle the base and we just translate.
-                
-                double screenWidth = MediaQuery.of(context).size.width;
-                double cancelHorizontalScroll = absValue * screenWidth;
-
-                double scale = max(0.8, 1.0 - (absValue * 0.08));
-                double dy = -absValue * 35.0; // Move up by 35px for each depth level
-
-                return Transform.translate(
-                  offset: Offset(cancelHorizontalScroll, dy),
-                  child: Transform.scale(
-                    scale: scale,
-                    child: Opacity(
-                      opacity: max(0.0, 1.0 - (absValue * 0.2)),
-                      child: child,
-                    ),
-                  ),
-                );
-              }
+                ),
+              );
             },
-            child: Center(
-              child: _buildCard(context, widget.rooms[index % widget.rooms.length]),
-            ),
+            child: _buildCard(context, widget.rooms[index]),
           );
         },
       ),
@@ -111,16 +77,15 @@ class _StackedRoomCarouselState extends State<StackedRoomCarousel>
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      width: MediaQuery.of(context).size.width * 0.85,
-      height: 320,
+      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceVariantD : AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -128,9 +93,9 @@ class _StackedRoomCarouselState extends State<StackedRoomCarousel>
         children: [
           // Background Image
           ClipRRect(
-            borderRadius: BorderRadius.circular(32),
+            borderRadius: BorderRadius.circular(24),
             child: Image.asset(
-              room.images?.firstOrNull?.imageUrl ?? 'assets/images/room_placeholder.png',
+              'assets/images/default_room.jpg',
               width: double.infinity,
               height: double.infinity,
               fit: BoxFit.cover,
@@ -140,48 +105,48 @@ class _StackedRoomCarouselState extends State<StackedRoomCarousel>
               ),
             ),
           ),
-          
+
           // Gradient Overlay
           Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(32),
+              borderRadius: BorderRadius.circular(24),
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
-                  Colors.black.withValues(alpha: 0.2),
-                  Colors.black.withValues(alpha: 0.8),
+                  Colors.black.withValues(alpha: 0.15),
+                  Colors.black.withValues(alpha: 0.75),
                 ],
-                stops: const [0.4, 0.7, 1.0],
+                stops: const [0.35, 0.6, 1.0],
               ),
             ),
           ),
 
           // Favorite Icon
           Positioned(
-            top: 20,
-            right: 20,
+            top: 14,
+            right: 14,
             child: Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
               ),
-              child: const Icon(Icons.favorite_border, color: Colors.white, size: 22),
+              child: const Icon(Icons.favorite_border, color: Colors.white, size: 18),
             ),
           ),
 
           // Top Chip
           Positioned(
-            top: 20,
-            left: 20,
+            top: 14,
+            left: 14,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
               ),
               child: Text(
@@ -189,7 +154,7 @@ class _StackedRoomCarouselState extends State<StackedRoomCarousel>
                 style: GoogleFonts.dmSans(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
-                  fontSize: 13,
+                  fontSize: 11,
                 ),
               ),
             ),
@@ -197,9 +162,9 @@ class _StackedRoomCarouselState extends State<StackedRoomCarousel>
 
           // Details at Bottom
           Positioned(
-            bottom: 24,
-            left: 24,
-            right: 24,
+            bottom: 16,
+            left: 16,
+            right: 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -207,22 +172,22 @@ class _StackedRoomCarouselState extends State<StackedRoomCarousel>
                   room.description ?? 'Beautiful Room',
                   style: GoogleFonts.playfairDisplay(
                     color: Colors.white,
-                    fontSize: 22,
+                    fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.star, color: Colors.white, size: 16),
+                    const Icon(Icons.star, color: Colors.white, size: 14),
                     const SizedBox(width: 4),
                     Text(
-                      '4.8 Rating', // Mock rating for room
+                      '4.8 Rating',
                       style: GoogleFonts.dmSans(
                         color: Colors.white.withValues(alpha: 0.9),
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -231,7 +196,7 @@ class _StackedRoomCarouselState extends State<StackedRoomCarousel>
                       '\$${room.price?.round() ?? 0}',
                       style: GoogleFonts.dmSans(
                         color: Colors.white,
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -239,7 +204,7 @@ class _StackedRoomCarouselState extends State<StackedRoomCarousel>
                       ' /night',
                       style: GoogleFonts.dmSans(
                         color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 12,
+                        fontSize: 11,
                       ),
                     ),
                   ],

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 import 'package:tunisian_trip_planner/features/accommodation/models/accommodation.dart';
+import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_cubit.dart';
+import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_states.dart';
 
 class AccommodationDetailScreen extends StatelessWidget {
   final AccommodationDto accommodation;
@@ -79,10 +82,24 @@ class AccommodationDetailScreen extends StatelessWidget {
             color: isDark ? Colors.black45 : Colors.white70,
             shape: BoxShape.circle,
           ),
-          child: IconButton(
-            icon: const Icon(Icons.favorite_border),
-            onPressed: () {},
-            color: isDark ? Colors.white : Colors.black,
+          child: BlocBuilder<FavouritesCubit, FavouritesStates>(
+            builder: (context, state) {
+              final isFav = state is FavouritesLoaded &&
+                  state.favouriteAccommodationIds.contains(accommodation.id.toString());
+              return IconButton(
+                icon: Icon(
+                  isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                  color: isFav ? Colors.red : (isDark ? Colors.white : Colors.black),
+                ),
+                onPressed: () {
+                  if (accommodation.id != null) {
+                    try {
+                      FavouritesCubit.get(context).toggleAccommodationFavourite(accommodation.id.toString());
+                    } catch (_) {}
+                  }
+                },
+              );
+            },
           ),
         ),
       ],
