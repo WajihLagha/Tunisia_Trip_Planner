@@ -106,7 +106,7 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
               decoration: BoxDecoration(
                 color: isDark ? AppColors.surfaceVariantD : Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+                border: Border.all(color: isDark ? const Color(0xFF424242) : const Color(0xFFEEEEEE)),
               ),
               child: Row(
                 children: [
@@ -195,8 +195,8 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
     }
 
     if (isDark) {
-      iconBgColor = iconBgColor.withOpacity(0.15);
-      iconColor = iconColor.withOpacity(0.9);
+      iconBgColor = iconBgColor.withValues(alpha: 0.15);
+      iconColor = iconColor.withValues(alpha: 0.9);
     }
 
     return Container(
@@ -204,10 +204,10 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[100]!),
+        border: Border.all(color: isDark ? const Color(0xFF424242) : const Color(0xFFF5F5F5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 15,
             offset: const Offset(0, 5),
           )
@@ -265,7 +265,7 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: booking.statusColor.withOpacity(0.1),
+                  color: booking.statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
@@ -293,7 +293,7 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Divider(color: isDark ? Colors.grey[800] : Colors.grey[200]),
+          Divider(color: isDark ? const Color(0xFF424242) : const Color(0xFFEEEEEE)),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -312,7 +312,7 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
               ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? Colors.grey[800] : const Color(0xFFF8F9FA),
+                  backgroundColor: isDark ? const Color(0xFF424242) : const Color(0xFFF8F9FA),
                   foregroundColor: isDark ? Colors.white : const Color(0xFF2B3A4A),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
@@ -370,13 +370,13 @@ class _EmptyState extends StatelessWidget {
                 height: 100,
                 decoration: BoxDecoration(
                   color: isDark
-                      ? AppColors.green900.withOpacity(0.4)
-                      : AppColors.green100.withOpacity(0.6),
+                      ? AppColors.green900.withValues(alpha: 0.4)
+                      : AppColors.green100.withValues(alpha: 0.6),
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: isDark
-                        ? AppColors.green700.withOpacity(0.5)
-                        : AppColors.green300.withOpacity(0.8),
+                        ? AppColors.green700.withValues(alpha: 0.5)
+                        : AppColors.green300.withValues(alpha: 0.8),
                     width: 2,
                   ),
                 ),
@@ -401,8 +401,8 @@ class _EmptyState extends StatelessWidget {
               style: GoogleFonts.dmSans(
                 fontSize: 14,
                 color: isDark
-                    ? AppColors.onSurfaceDark.withOpacity(0.6)
-                    : AppColors.onSurfaceLight.withOpacity(0.6),
+                    ? AppColors.onSurfaceDark.withValues(alpha: 0.6)
+                    : AppColors.onSurfaceLight.withValues(alpha: 0.6),
                 height: 1.6,
               ),
               textAlign: TextAlign.center,
