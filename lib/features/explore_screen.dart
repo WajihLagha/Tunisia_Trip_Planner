@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
-import 'package:tunisian_trip_planner/features/booking_screen.dart';
+import 'package:tunisian_trip_planner/features/my_bookings_screen.dart';
 import 'package:tunisian_trip_planner/features/favourite_screen.dart';
 import 'package:tunisian_trip_planner/features/places/cubit/places_cubit.dart';
 import 'package:tunisian_trip_planner/features/places/cubit/places_states.dart';
@@ -93,8 +93,7 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                 expandedHeight: _heroHeight,
                 pinned: true,
                 floating: false,
-                backgroundColor:
-                    isDark ? AppColors.surfaceDark : AppColors.green600,
+                backgroundColor: theme.scaffoldBackgroundColor,
                 elevation: 0,
                 title: AnimatedOpacity(
                   opacity: _showCollapsed ? 1.0 : 0.0,
@@ -104,7 +103,7 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                     style: GoogleFonts.playfairDisplay(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: isDark ? Colors.white : AppColors.green950,
                     ),
                   ),
                 ),
@@ -115,16 +114,16 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.favorite_rounded,
-                              color: Colors.white),
+                          icon: Icon(Icons.favorite_rounded,
+                              color: isDark ? Colors.white : AppColors.green950),
                           onPressed: () => navigateTo(
                               ctx, const FavouriteScreen()),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.bookmark_rounded,
-                              color: Colors.white),
+                          icon: Icon(Icons.bookmark_rounded,
+                              color: isDark ? Colors.white : AppColors.green950),
                           onPressed: () => navigateTo(
-                              ctx, const BookingScreen()),
+                              ctx, const MyBookingScreen()),
                         ),
                       ],
                     ),
@@ -137,7 +136,7 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                     onFavouritesTap: () =>
                         navigateTo(ctx, const FavouriteScreen()),
                     onBookingsTap: () =>
-                        navigateTo(ctx, const BookingScreen()),
+                        navigateTo(ctx, const MyBookingScreen()),
                   ),
                 ),
               ),

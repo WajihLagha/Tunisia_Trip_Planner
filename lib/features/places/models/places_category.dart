@@ -1,0 +1,18 @@
+enum PlacesCategory {
+  history,
+  culture,
+  nature,
+  beach,
+  island,
+  desert,
+  mountain,
+  adventure,
+  nightlife,
+  restaurant,
+  shopping,
+  entertainment,
+  religious,
+  museum,
+  park,
+  company,
+}

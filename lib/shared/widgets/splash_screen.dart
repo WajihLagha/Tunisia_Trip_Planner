@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:progress_indicators/progress_indicators.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -67,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen>
               opacity: _fadeAnimation,
               child: ScaleTransition(
                 scale: _scaleAnimation,
-                child: Image.asset("assets/logo.png", height: 170),
+                child: Image.asset("assets/images/logo.png", height: 170),
               ),
             ),
             const SizedBox(height: 30),
@@ -75,20 +74,81 @@ class _SplashScreenState extends State<SplashScreen>
               "Plan Your Tunisian Adventure",
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
             ),
             SizedBox(height: 40,),
-            JumpingDotsProgressIndicator(
-              fontSize: 100.0,
-              color: Colors.white70,
-              numberOfDots: 3,
-              milliseconds: 200,
+            SizedBox(
+              height: 60,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(3, (index) => JumpingDot(index: index)),
+              ),
             )
           ],
         ),
       ),
+    );
+  }
+}
+
+
+class JumpingDot extends StatefulWidget {
+  final int index;
+  const JumpingDot({required this.index});
+
+  @override
+  State<JumpingDot> createState() => _JumpingDotState();
+}
+
+class _JumpingDotState extends State<JumpingDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    _animation = Tween<double>(begin: 0, end: -14).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    // Stagger each dot
+    Future.delayed(Duration(milliseconds: widget.index * 150), () {
+      if (mounted) _controller.repeat(reverse: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _animation.value),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 5),
+            width: 12,
+            height: 12,
+            decoration: const BoxDecoration(
+              color: Colors.white70,
+              shape: BoxShape.circle,
+            ),
+          ),
+        );
+      },
     );
   }
 }

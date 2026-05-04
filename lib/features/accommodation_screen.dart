@@ -49,27 +49,9 @@ class _AccommodationView extends StatelessWidget {
 
           return CustomScrollView(
             slivers: [
-              // ── Collapsing Header with pinned title ───────────────────
-              SliverAppBar(
-                pinned: true,
-                expandedHeight: 140,
-                backgroundColor: AppColors.green900,
-                surfaceTintColor: Colors.transparent,
-                elevation: 0,
-                centerTitle: false,
-                title: Text(
-                  'Stays',
-                  style: GoogleFonts.playfairDisplay(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                flexibleSpace: FlexibleSpaceBar(
-                  collapseMode: CollapseMode.parallax,
-                  titlePadding: EdgeInsets.zero,
-                  background: _buildHeader(context, isDark, cs),
-                ),
+              // ── Header Section ─────────────────────────────────────────────
+              SliverToBoxAdapter(
+                child: _buildHeader(context, isDark, cs),
               ),
 
               // ── Scrollable: Search Bar + Filter Button ─────────────────
@@ -271,14 +253,14 @@ class _AccommodationView extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Find Your\nPerfect Stay',
               style: GoogleFonts.playfairDisplay(
-                fontSize: 34,
+                fontSize: 28,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
                 height: 1.15,

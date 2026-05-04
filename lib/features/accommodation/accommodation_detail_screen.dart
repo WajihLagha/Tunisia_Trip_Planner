@@ -43,7 +43,7 @@ class AccommodationDetailScreen extends StatelessWidget {
           ),
         ],
       ),
-      bottomSheet: _buildBottomBar(isDark),
+      bottomNavigationBar: _buildBottomBar(isDark),
     );
   }
 
@@ -105,7 +105,7 @@ class AccommodationDetailScreen extends StatelessWidget {
       ],
       flexibleSpace: FlexibleSpaceBar(
         background: Image.asset(
-          accommodation.images?.firstOrNull?.imageUrl ?? 'assets/images/hotel_placeholder.png',
+          (accommodation.images?.isNotEmpty == true ? accommodation.images!.first.imageUrl : null) ?? 'assets/images/hotel_placeholder.png',
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) => Container(
             color: Colors.grey,
@@ -222,7 +222,7 @@ class AccommodationDetailScreen extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundImage: const AssetImage('assets/images/user_avatar.png'), // Placeholder
+            backgroundImage: const AssetImage('assets/images/default_profile.jpg'), // Placeholder
             backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
             child: const Icon(Icons.person, color: Colors.grey),
           ),
@@ -341,7 +341,7 @@ class AccommodationDetailScreen extends StatelessWidget {
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             child: Image.asset(
-              room.images?.firstOrNull?.imageUrl ?? 'assets/images/room_placeholder.png',
+              (room.images?.isNotEmpty == true ? room.images!.first.imageUrl : null) ?? 'assets/images/room_placeholder.png',
               height: 180,
               width: double.infinity,
               fit: BoxFit.cover,

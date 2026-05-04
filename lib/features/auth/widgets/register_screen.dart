@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:tunisian_trip_planner/features/auth/register_cubit/register_cubit.dart';
 import 'package:tunisian_trip_planner/features/auth/register_cubit/register_state.dart';
+import 'package:tunisian_trip_planner/features/auth/widgets/profile_setup_screen.dart';
 import 'package:tunisian_trip_planner/shared/widgets/components.dart';
+import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 
 class RegisterScreen extends StatelessWidget {
   RegisterScreen({super.key});
@@ -198,8 +200,7 @@ class RegisterScreen extends StatelessWidget {
                               GestureDetector(
                                 onTap: () {
                                   if (formKey.currentState!.validate()) {
-                                    // Perform Registration Logic
-                                    debugPrint("Register Validated");
+                                    navigateAndRemoveAll(context, const ProfileSetupScreen());
                                   }
                                 },
                                 child: Container(

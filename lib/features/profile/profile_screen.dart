@@ -5,6 +5,7 @@ import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 import 'package:tunisian_trip_planner/features/profile/cubit/profile_cubit.dart';
 import 'package:tunisian_trip_planner/features/profile/cubit/profile_states.dart';
 import 'package:tunisian_trip_planner/features/favourite_screen.dart';
+import 'package:tunisian_trip_planner/features/auth/onboarding_screen.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 
 
@@ -157,11 +158,12 @@ class ProfileScreen extends StatelessWidget {
 
                       const SizedBox(height: 32),
 
-                      // Logout Button
                       SizedBox(
                         height: 54,
                         child: OutlinedButton(
-                          onPressed: () => cubit.logout(),
+                          onPressed: () {
+                            navigateAndRemoveAll(context, const OnboardingScreen());
+                          },
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.errorColor,
                             side: BorderSide(

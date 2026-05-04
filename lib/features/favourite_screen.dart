@@ -12,148 +12,125 @@ import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 import 'package:tunisian_trip_planner/features/places/screens/place_details_screen.dart';
 import 'package:tunisian_trip_planner/features/accommodation/accommodation_detail_screen.dart';
 
-class FavouriteScreen extends StatelessWidget {
+class FavouriteScreen extends StatefulWidget {
   const FavouriteScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => FavouritesCubit()..loadFavourites(),
-      child: const _FavouriteView(),
-    );
-  }
+  State<FavouriteScreen> createState() => _FavouriteScreenState();
 }
 
-class _FavouriteView extends StatelessWidget {
-  const _FavouriteView();
+class _FavouriteScreenState extends State<FavouriteScreen> {
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        backgroundColor:
-            isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-        body: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverAppBar(
-              pinned: true,
-              floating: true,
-              backgroundColor:
-                  isDark ? AppColors.green950 : AppColors.green700,
-              expandedHeight: 130,
-              forceElevated: innerBoxIsScrolled,
-              flexibleSpace: FlexibleSpaceBar(
-                collapseMode: CollapseMode.pin,
-                background: _buildHeader(isDark),
-              ),
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(52),
-                child: TabBar(
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.white.withValues(alpha: 0.5),
-                  indicatorColor: Colors.white,
-                  indicatorWeight: 3,
-                  labelStyle: GoogleFonts.dmSans(
-                      fontWeight: FontWeight.w700, fontSize: 13),
-                  unselectedLabelStyle:
-                      GoogleFonts.dmSans(fontWeight: FontWeight.w400),
-                  tabs: const [
-                    Tab(icon: Icon(Icons.place_rounded, size: 18), text: 'Places'),
-                    Tab(icon: Icon(Icons.hotel_rounded, size: 18), text: 'Stays'),
-                    Tab(icon: Icon(Icons.directions_car_rounded, size: 18), text: 'Transport'),
-                  ],
+    return Scaffold(
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'My Favourites',
+          style: GoogleFonts.dmSans(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
+      ),
+      body: BlocBuilder<FavouritesCubit, FavouritesStates>(
+        builder: (context, state) {
+          if (state is! FavouritesLoaded) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final favPlaces = MockPlacesData.places
+              .where((p) => state.favouritePlaceIds.contains(p.id))
+              .toList();
+
+          final favAccoms = MockAccommodationData.accommodations
+              .where((a) => state.favouriteAccommodationIds.contains(a.id.toString()))
+              .toList();
+
+          return Column(
+            children: [
+              const SizedBox(height: 16),
+              // Segmented Control
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.surfaceVariantD : Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+                  ),
+                  child: Row(
+                    children: [
+                      _buildTab(0, 'Places', isDark),
+                      _buildTab(1, 'Stays', isDark),
+                      _buildTab(2, 'Transport', isDark),
+                    ],
+                  ),
                 ),
               ),
+              const SizedBox(height: 24),
+              // Tab Content
+              Expanded(
+                child: _buildSelectedTab(favPlaces, favAccoms, isDark, state),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTab(int index, String title, bool isDark) {
+    final isSelected = _selectedIndex == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() => _selectedIndex = index);
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF00E6C3) : Colors.transparent,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Center(
+            child: Text(
+              title,
+              style: GoogleFonts.dmSans(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected 
+                    ? Colors.black87 
+                    : (isDark ? Colors.white70 : Colors.black54),
+              ),
             ),
-          ],
-          body: BlocBuilder<FavouritesCubit, FavouritesStates>(
-            builder: (context, state) {
-              if (state is! FavouritesLoaded) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              final favPlaces = MockPlacesData.places
-                  .where((p) =>
-                      state.favouritePlaceIds.contains(p.id))
-                  .toList();
-
-              final favAccoms = MockAccommodationData.accommodations
-                  .where((a) =>
-                      state.favouriteAccommodationIds.contains(a.id.toString()))
-                  .toList();
-
-              return TabBarView(
-                children: [
-                  _PlacesTab(
-                      places: favPlaces, isDark: isDark, state: state),
-                  _StaysTab(
-                      accommodations: favAccoms, isDark: isDark, state: state),
-                  _TransportTab(isDark: isDark),
-                ],
-              );
-            },
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [AppColors.green950, AppColors.green900]
-              : [AppColors.green800, AppColors.green600],
-        ),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'My Favourites',
-                    style: GoogleFonts.playfairDisplay(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'All the places you love, in one spot',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.favorite_rounded,
-                    color: Colors.white, size: 22),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  Widget _buildSelectedTab(List<PlacesResponse> places, List<AccommodationDto> accoms, bool isDark, FavouritesLoaded state) {
+    if (_selectedIndex == 0) {
+      return _PlacesTab(places: places, isDark: isDark, state: state);
+    } else if (_selectedIndex == 1) {
+      return _StaysTab(accommodations: accoms, isDark: isDark, state: state);
+    } else {
+      return _TransportTab(isDark: isDark);
+    }
   }
 }
 
