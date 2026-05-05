@@ -160,7 +160,7 @@ class _TripBottomNavBarState extends State<TripBottomNavBar>
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: SizedBox(
-                height: 60,
+                height: 62,
                 child: Stack(
                   clipBehavior: Clip.none,
                   alignment: Alignment.bottomCenter,
@@ -176,7 +176,7 @@ class _TripBottomNavBarState extends State<TripBottomNavBar>
                       right: 0,
                       bottom: 0,
                       child: SizedBox(
-                        height: 60,
+                        height: 62,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: List.generate(_items.length, (i) {

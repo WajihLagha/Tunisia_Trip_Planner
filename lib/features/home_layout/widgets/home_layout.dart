@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tunisian_trip_planner/features/add_place_screen.dart';
 import 'package:tunisian_trip_planner/features/add_stay_screen.dart';
-import 'package:tunisian_trip_planner/features/my_bookings_screen.dart';
+import 'package:tunisian_trip_planner/features/ai/screens/ai_trip_screen.dart';
 import 'package:tunisian_trip_planner/features/home_layout/cubit/home_cubit.dart';
 import 'package:tunisian_trip_planner/features/home_layout/cubit/home_states.dart';
 import 'package:tunisian_trip_planner/features/home_layout/widgets/trip_nav_bar.dart';
@@ -29,7 +29,7 @@ class HomeLayout extends StatelessWidget {
               currentIndex: cubit.currentIndex,
               onTap: cubit.changeTripNavBar,
               onStartNewTrip: () {
-                navigateTo(context, const MyBookingScreen());
+                navigateTo(context, const AiTripScreen());
               },
               onAddPlace: () {
                 navigateTo(context, const AddPlaceScreen());

@@ -114,7 +114,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
     return BlocBuilder<PreferencesCubit, PreferencesState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: AppColors.surfaceLight,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: Column(
             children: [
               _HeaderWidget(state: state),
@@ -213,7 +213,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
     ];
 
     return Step(
-      title: _stepTitle('Location & Age', _currentStep >= 0),
+      title: _stepTitle(context, 'Location & Age', _currentStep >= 0),
       subtitle: _stepSubtitle('Where are you from? How old are you?'),
       isActive: _currentStep >= 0,
       state: state.step1Valid ? StepState.complete : StepState.indexed,
@@ -227,7 +227,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
           TextField(
             controller: _addressController,
             onChanged: cubit.updateAddress,
-            style: GoogleFonts.nunito(color: AppColors.onSurfaceLight, fontSize: 14),
+            style: GoogleFonts.nunito(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Type your city or use GPS below…',
               hintStyle: GoogleFonts.nunito(color: AppColors.mutedText, fontSize: 13),
@@ -392,7 +392,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
                         style: GoogleFonts.nunito(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: selected ? Colors.white : AppColors.onSurfaceLight,
+                          color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -430,7 +430,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
     ];
 
     return Step(
-      title: _stepTitle('Travel Style & Company', _currentStep >= 1),
+      title: _stepTitle(context, 'Travel Style & Company', _currentStep >= 1),
       subtitle: _stepSubtitle('What do you love? Who are you travelling with?'),
       isActive: _currentStep >= 1,
       state: state.step2Valid ? StepState.complete : StepState.indexed,
@@ -481,7 +481,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
                         style: GoogleFonts.nunito(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: selected ? Colors.white : AppColors.onSurfaceLight,
+                          color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -532,7 +532,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
                           style: GoogleFonts.nunito(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: selected ? Colors.white : AppColors.onSurfaceLight,
+                            color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ],
@@ -569,7 +569,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
     ];
 
     return Step(
-      title: _stepTitle('Budget & Accommodation', _currentStep >= 2),
+      title: _stepTitle(context, 'Budget & Accommodation', _currentStep >= 2),
       subtitle: _stepSubtitle('What is your spending comfort?'),
       isActive: _currentStep >= 2,
       state: state.step3Valid ? StepState.complete : StepState.indexed,
@@ -677,7 +677,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
                                     fontWeight: FontWeight.w800,
                                     color: selected
                                         ? Colors.white
-                                        : AppColors.onSurfaceLight,
+                                        : Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
@@ -746,7 +746,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
                         style: GoogleFonts.nunito(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: selected ? Colors.white : AppColors.onSurfaceLight,
+                          color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -777,7 +777,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
     String fmt(List<String> list) => list.isEmpty ? '—' : list.join(', ');
 
     return Step(
-      title: _stepTitle('Transport & Summary', _currentStep >= 3),
+      title: _stepTitle(context, 'Transport & Summary', _currentStep >= 3),
       subtitle: _stepSubtitle('How do you like to get around?'),
       isActive: _currentStep >= 3,
       state: state.step4Valid ? StepState.complete : StepState.indexed,
@@ -826,7 +826,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
                         style: GoogleFonts.nunito(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: selected ? Colors.white : AppColors.onSurfaceLight,
+                          color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -1071,7 +1071,7 @@ class _BottomCTA extends StatelessWidget {
                 height: 54,
                 width: 54,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceLight,
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.borderColor, width: 1.5),
                 ),
@@ -1204,12 +1204,12 @@ Widget _sectionLabel(String text) => Text(
       ),
     );
 
-Widget _stepTitle(String text, bool isActive) => Text(
+Widget _stepTitle(BuildContext context, String text, bool isActive) => Text(
       text,
       style: GoogleFonts.nunito(
         fontSize: 15,
         fontWeight: FontWeight.w800,
-        color: isActive ? AppColors.onSurfaceLight : AppColors.mutedText,
+        color: isActive ? Theme.of(context).colorScheme.onSurface : AppColors.mutedText,
       ),
     );
 
