@@ -1,4 +1,10 @@
+enum PreferencesStatus { initial, loading, userCreated, waitingForVerification, loginSuccess, error, verificationTimeout }
+
 class PreferencesState {
+  final PreferencesStatus status;
+  final String? errorMessage;
+  final String? token;
+
   final String? address;
   final List<String> travelStyle;
   final String? companions;
@@ -15,6 +21,9 @@ class PreferencesState {
     this.accommodation = const [],
     this.transport = const [],
     this.ageGroup,
+    this.status = PreferencesStatus.initial,
+    this.errorMessage,
+    this.token,
   });
 
   // ── Per-step validations ──────────────────────────────────────
@@ -39,6 +48,9 @@ class PreferencesState {
     List<String>? accommodation,
     List<String>? transport,
     String? ageGroup,
+    PreferencesStatus? status,
+    String? errorMessage,
+    String? token,
   }) {
     return PreferencesState(
       address: address ?? this.address,
@@ -48,6 +60,9 @@ class PreferencesState {
       accommodation: accommodation ?? this.accommodation,
       transport: transport ?? this.transport,
       ageGroup: ageGroup ?? this.ageGroup,
+      status: status ?? this.status,
+      errorMessage: errorMessage ?? this.errorMessage,
+      token: token ?? this.token,
     );
   }
 

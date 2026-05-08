@@ -6,6 +6,9 @@ import 'package:tunisian_trip_planner/features/auth/login_cubit/login_states.dar
 import 'package:tunisian_trip_planner/features/auth/widgets/privacy_screen.dart';
 import 'package:tunisian_trip_planner/features/auth/widgets/register_screen.dart';
 import 'package:tunisian_trip_planner/shared/widgets/components.dart';
+import 'package:tunisian_trip_planner/shared/network/local/cache_helper.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
+import 'package:tunisian_trip_planner/features/home_layout/widgets/home_layout.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 
 
@@ -21,7 +24,23 @@ class LoginScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => LoginCubit(),
       child: BlocConsumer<LoginCubit, LoginState>(
-        listener: (context, state) {},
+        listener: (context, state) {
+          if (state is LoginSuccess) {
+            if (state.loginModel.accessToken != null) {
+              final token = state.loginModel.accessToken!;
+              CacheHelper.putData(
+                key: 'token',
+                value: token,
+              ).then((_) {
+                DioHelper.setToken(token);
+                navigateAndRemoveAll(context, const HomeLayout());
+              });
+            }
+          }
+          if (state is LoginError) {
+            showToast(msg: state.error, state: ToastStates.error);
+          }
+        },
         builder: (context, state) {
           LoginCubit cubit = LoginCubit.get(context);
           bool isShown = cubit.isShown;
@@ -168,27 +187,42 @@ class LoginScreen extends StatelessWidget {
                               const SizedBox(height: 30),
 
                               // Sign In Button
-                              Container(
-                                width: double.infinity,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      HexColor("#14746f"),
-                                      HexColor("#469d89"),
-                                      HexColor("#78c6a3"),
-                                    ],
-                                  ),
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    "Sign In",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
+                              InkWell(
+                                onTap: () {
+                                  if (formKey.currentState!.validate()) {
+                                    cubit.userLogin(
+                                      username: nameController.text,
+                                      password: passwordController.text,
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        HexColor("#14746f"),
+                                        HexColor("#469d89"),
+                                        HexColor("#78c6a3"),
+                                      ],
                                     ),
+                                  ),
+                                  child: Center(
+                                    child:
+                                        state is LoginLoading
+                                            ? const CircularProgressIndicator(
+                                              color: Colors.white,
+                                            )
+                                            : const Text(
+                                              "Sign In",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20,
+                                              ),
+                                            ),
                                   ),
                                 ),
                               ),

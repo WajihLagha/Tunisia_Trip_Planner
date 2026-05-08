@@ -5,7 +5,9 @@ import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 import 'package:tunisian_trip_planner/features/profile/cubit/profile_cubit.dart';
 import 'package:tunisian_trip_planner/features/profile/cubit/profile_states.dart';
 import 'package:tunisian_trip_planner/features/favourite_screen.dart';
-import 'package:tunisian_trip_planner/features/auth/onboarding_screen.dart';
+import 'package:tunisian_trip_planner/features/auth/widgets/login_screen.dart';
+import 'package:tunisian_trip_planner/shared/network/local/cache_helper.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 
 
@@ -15,15 +17,13 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ProfileCubit(),
-      child: BlocBuilder<ProfileCubit, ProfileStates>(
-        builder: (context, state) {
-          final cubit = ProfileCubit.get(context);
-          final isDark = cubit.isDarkMode;
-          final cs = isDark ? darkTheme.colorScheme : lightTheme.colorScheme;
+    return BlocBuilder<ProfileCubit, ProfileStates>(
+      builder: (context, state) {
+        final cubit = ProfileCubit.get(context);
+        final isDark = cubit.isDarkMode;
+        final cs = isDark ? darkTheme.colorScheme : lightTheme.colorScheme;
 
-          return Scaffold(
+        return Scaffold(
             backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
             body: CustomScrollView(
               slivers: [
@@ -161,8 +161,14 @@ class ProfileScreen extends StatelessWidget {
                       SizedBox(
                         height: 54,
                         child: OutlinedButton(
-                          onPressed: () {
-                            navigateAndRemoveAll(context, const OnboardingScreen());
+                          onPressed: () async {
+                            // Clear token only — keep onBoarding flag so user
+                            // goes to LoginScreen, not OnboardingScreen.
+                            await CacheHelper.removeData(key: 'token');
+                            DioHelper.clearToken();
+                            if (context.mounted) {
+                              navigateAndRemoveAll(context, LoginScreen());
+                            }
                           },
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.errorColor,
@@ -211,8 +217,7 @@ class ProfileScreen extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
+      );
   }
 
   // ── Show contact us panel ──────────────────────────────────────────────────
@@ -622,15 +627,9 @@ class _ContactUsSheetState extends State<_ContactUsSheet>
   static const _methods = [
     _ContactMethod(
       title: 'WhatsApp',
-      value: '+216 12 345 678',
+      value: '+216 99 590 361',
       icon: Icons.chat_rounded,
       color: Color(0xFF25D366),
-    ),
-    _ContactMethod(
-      title: 'Phone',
-      value: '+216 12 345 678',
-      icon: Icons.phone_rounded,
-      color: Color(0xFF007AFF),
     ),
     _ContactMethod(
       title: 'Email',

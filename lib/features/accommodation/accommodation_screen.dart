@@ -10,6 +10,8 @@ import 'package:tunisian_trip_planner/features/accommodation/widgets/hotel_horiz
 import 'package:tunisian_trip_planner/features/accommodation/widgets/stacked_room_carousel.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 import 'package:tunisian_trip_planner/features/accommodation/accommodation_detail_screen.dart';
+import 'package:tunisian_trip_planner/features/accommodation/room_detail_screen.dart';
+import 'package:tunisian_trip_planner/features/accommodation/data/mock_accommodation_data.dart';
 
 class AccommodationScreen extends StatelessWidget {
   const AccommodationScreen({super.key});
@@ -93,7 +95,24 @@ class _AccommodationView extends StatelessWidget {
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 16)),
                 SliverToBoxAdapter(
-                  child: StackedRoomCarousel(rooms: cubit.topRooms),
+                  child: StackedRoomCarousel(
+                    rooms: cubit.topRooms,
+                    onRoomTap: (room) {
+                      // Find parent accommodation for the tapped room
+                      final parentAccom = MockAccommodationData.accommodations
+                          .firstWhere(
+                            (a) => a.rooms?.any((r) => r.id == room.id) == true,
+                            orElse: () => MockAccommodationData.accommodations.first,
+                          );
+                      navigateTo(
+                        context,
+                        RoomDetailScreen(
+                          room: room,
+                          accommodation: parentAccom,
+                        ),
+                      );
+                    },
+                  ),
                 ),
 
                 const SliverToBoxAdapter(child: SizedBox(height: 32)),

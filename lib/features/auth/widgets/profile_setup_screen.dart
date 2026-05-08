@@ -11,18 +11,35 @@ import 'package:tunisian_trip_planner/features/auth/preferences_cubit/preference
 import 'package:tunisian_trip_planner/features/home_layout/widgets/home_layout.dart';
 import 'package:tunisian_trip_planner/shared/widgets/components.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
+import 'package:tunisian_trip_planner/features/auth/widgets/register_screen.dart';
 
 // ───────────────────────────────────────────────────────────────────────────
 //  ROOT SCREEN
 // ───────────────────────────────────────────────────────────────────────────
 class ProfileSetupScreen extends StatelessWidget {
-  const ProfileSetupScreen({super.key});
+  final String username;
+  final String email;
+  final String mobileNumber;
+  final String password;
+
+  const ProfileSetupScreen({
+    super.key,
+    required this.username,
+    required this.email,
+    required this.mobileNumber,
+    required this.password,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => PreferencesCubit(),
-      child: const _PreferencesBody(),
+      child: _PreferencesBody(
+        username: username,
+        email: email,
+        mobileNumber: mobileNumber,
+        password: password,
+      ),
     );
   }
 }
@@ -31,7 +48,17 @@ class ProfileSetupScreen extends StatelessWidget {
 //  STATEFUL BODY
 // ───────────────────────────────────────────────────────────────────────────
 class _PreferencesBody extends StatefulWidget {
-  const _PreferencesBody();
+  final String username;
+  final String email;
+  final String mobileNumber;
+  final String password;
+
+  const _PreferencesBody({
+    required this.username,
+    required this.email,
+    required this.mobileNumber,
+    required this.password,
+  });
 
   @override
   State<_PreferencesBody> createState() => _PreferencesBodyState();
@@ -111,10 +138,10 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PreferencesCubit, PreferencesState>(
+    return BlocConsumer<PreferencesCubit, PreferencesState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          backgroundColor: AppColors.surfaceLight,
           body: Column(
             children: [
               _HeaderWidget(state: state),
@@ -195,8 +222,51 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
             currentStep: _currentStep,
             state: state,
             onSetStep: _setStep,
+            username: widget.username,
+            email: widget.email,
+            mobileNumber: widget.mobileNumber,
+            password: widget.password,
           ),
         );
+      },
+      listener: (context, state) {
+        if (state.status == PreferencesStatus.userCreated) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => const AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 20),
+                  Text(
+                    'A verification email was sent.\nPlease check your inbox.\nWaiting for verification...',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+          PreferencesCubit.get(context).startPollingForVerification(
+            username: widget.username,
+            password: widget.password,
+          );
+        } else if (state.status == PreferencesStatus.loginSuccess) {
+          // Close the dialog first
+          Navigator.of(context, rootNavigator: true).pop();
+          navigateAndRemoveAll(context, const HomeLayout());
+        } else if (state.status == PreferencesStatus.verificationTimeout) {
+          // Close the dialog first
+          Navigator.of(context, rootNavigator: true).pop();
+          navigateAndRemoveAll(context, RegisterScreen());
+          showToast(
+            msg: state.errorMessage ?? "Verification timed out. Please register again or verify.", 
+            state: ToastStates.warning,
+          );
+        } else if (state.status == PreferencesStatus.error) {
+          showToast(msg: state.errorMessage ?? "An error occurred", state: ToastStates.error);
+        }
       },
     );
   }
@@ -213,7 +283,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
     ];
 
     return Step(
-      title: _stepTitle(context, 'Location & Age', _currentStep >= 0),
+      title: _stepTitle('Location & Age', _currentStep >= 0),
       subtitle: _stepSubtitle('Where are you from? How old are you?'),
       isActive: _currentStep >= 0,
       state: state.step1Valid ? StepState.complete : StepState.indexed,
@@ -227,7 +297,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
           TextField(
             controller: _addressController,
             onChanged: cubit.updateAddress,
-            style: GoogleFonts.nunito(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+            style: GoogleFonts.nunito(color: AppColors.onSurfaceLight, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Type your city or use GPS below…',
               hintStyle: GoogleFonts.nunito(color: AppColors.mutedText, fontSize: 13),
@@ -392,7 +462,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
                         style: GoogleFonts.nunito(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                          color: selected ? Colors.white : AppColors.onSurfaceLight,
                         ),
                       ),
                     ],
@@ -430,7 +500,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
     ];
 
     return Step(
-      title: _stepTitle(context, 'Travel Style & Company', _currentStep >= 1),
+      title: _stepTitle('Travel Style & Company', _currentStep >= 1),
       subtitle: _stepSubtitle('What do you love? Who are you travelling with?'),
       isActive: _currentStep >= 1,
       state: state.step2Valid ? StepState.complete : StepState.indexed,
@@ -481,7 +551,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
                         style: GoogleFonts.nunito(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                          color: selected ? Colors.white : AppColors.onSurfaceLight,
                         ),
                       ),
                     ],
@@ -532,7 +602,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
                           style: GoogleFonts.nunito(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                            color: selected ? Colors.white : AppColors.onSurfaceLight,
                           ),
                         ),
                       ],
@@ -569,7 +639,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
     ];
 
     return Step(
-      title: _stepTitle(context, 'Budget & Accommodation', _currentStep >= 2),
+      title: _stepTitle('Budget & Accommodation', _currentStep >= 2),
       subtitle: _stepSubtitle('What is your spending comfort?'),
       isActive: _currentStep >= 2,
       state: state.step3Valid ? StepState.complete : StepState.indexed,
@@ -677,7 +747,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
                                     fontWeight: FontWeight.w800,
                                     color: selected
                                         ? Colors.white
-                                        : Theme.of(context).colorScheme.onSurface,
+                                        : AppColors.onSurfaceLight,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
@@ -746,7 +816,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
                         style: GoogleFonts.nunito(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                          color: selected ? Colors.white : AppColors.onSurfaceLight,
                         ),
                       ),
                     ],
@@ -777,7 +847,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
     String fmt(List<String> list) => list.isEmpty ? '—' : list.join(', ');
 
     return Step(
-      title: _stepTitle(context, 'Transport & Summary', _currentStep >= 3),
+      title: _stepTitle('Transport & Summary', _currentStep >= 3),
       subtitle: _stepSubtitle('How do you like to get around?'),
       isActive: _currentStep >= 3,
       state: state.step4Valid ? StepState.complete : StepState.indexed,
@@ -826,7 +896,7 @@ class _PreferencesBodyState extends State<_PreferencesBody> {
                         style: GoogleFonts.nunito(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                          color: selected ? Colors.white : AppColors.onSurfaceLight,
                         ),
                       ),
                     ],
@@ -1002,11 +1072,19 @@ class _BottomCTA extends StatelessWidget {
   final int currentStep;
   final PreferencesState state;
   final void Function(int) onSetStep;
+  final String username;
+  final String email;
+  final String mobileNumber;
+  final String password;
 
   const _BottomCTA({
     required this.currentStep,
     required this.state,
     required this.onSetStep,
+    required this.username,
+    required this.email,
+    required this.mobileNumber,
+    required this.password,
   });
 
   bool get _isValid {
@@ -1031,7 +1109,12 @@ class _BottomCTA extends StatelessWidget {
       onSetStep(currentStep + 1);
     } else {
       PreferencesCubit.get(context).savePreferences();
-      navigateAndRemoveAll(context, HomeLayout());
+      PreferencesCubit.get(context).createUser(
+        username: username,
+        email: email,
+        mobileNumber: mobileNumber,
+        password: password,
+      );
     }
   }
 
@@ -1071,7 +1154,7 @@ class _BottomCTA extends StatelessWidget {
                 height: 54,
                 width: 54,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
+                  color: AppColors.surfaceLight,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.borderColor, width: 1.5),
                 ),
@@ -1114,15 +1197,22 @@ class _BottomCTA extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      isLast ? 'Save & Explore Tunisia' : 'Continue',
-                      style: GoogleFonts.nunito(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                    if (state.status == PreferencesStatus.loading || state.status == PreferencesStatus.waitingForVerification)
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    else
+                      Text(
+                        isLast ? 'Save & Explore Tunisia' : 'Continue',
+                        style: GoogleFonts.nunito(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    if (!isLast) ...[
+                    if (!isLast && state.status != PreferencesStatus.loading && state.status != PreferencesStatus.waitingForVerification) ...[
                       const SizedBox(width: 8),
                       const Icon(Icons.arrow_forward_rounded,
                           color: Colors.white, size: 18),
@@ -1204,12 +1294,12 @@ Widget _sectionLabel(String text) => Text(
       ),
     );
 
-Widget _stepTitle(BuildContext context, String text, bool isActive) => Text(
+Widget _stepTitle(String text, bool isActive) => Text(
       text,
       style: GoogleFonts.nunito(
         fontSize: 15,
         fontWeight: FontWeight.w800,
-        color: isActive ? Theme.of(context).colorScheme.onSurface : AppColors.mutedText,
+        color: isActive ? AppColors.onSurfaceLight : AppColors.mutedText,
       ),
     );
 

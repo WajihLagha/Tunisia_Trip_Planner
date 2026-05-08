@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:tunisian_trip_planner/features/auth/widgets/login_screen.dart';
+import 'package:tunisian_trip_planner/shared/network/local/cache_helper.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 import 'package:tunisian_trip_planner/shared/widgets/next_button.dart';
 
@@ -81,11 +82,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
+  Future<void> _finishOnboarding() async {
+    await CacheHelper.putData(key: 'onBoarding', value: true);
+    if (mounted) navigateAndRemoveAll(context, LoginScreen());
+  }
+
   void _onNextPressed() {
     if (isLast) {
-      // Use your routing helper to remove onboarding from stack
-      // Replace LoginScreen with your actual screen
-      navigateAndRemoveAll(context, LoginScreen());
+      _finishOnboarding();
     } else {
       pageController.nextPage(
         duration: const Duration(milliseconds: 500),
@@ -95,7 +99,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _onSkipPressed() {
-    navigateAndRemoveAll(context, LoginScreen());
+    _finishOnboarding();
   }
 
   @override

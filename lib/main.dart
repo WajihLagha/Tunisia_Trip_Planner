@@ -4,6 +4,7 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:tunisian_trip_planner/core/notifications/notification_service.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 import 'package:tunisian_trip_planner/features/auth/onboarding_screen.dart';
+import 'package:tunisian_trip_planner/features/auth/widgets/login_screen.dart';
 import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_cubit.dart';
 import 'package:tunisian_trip_planner/features/home_layout/widgets/home_layout.dart';
 import 'package:tunisian_trip_planner/features/profile/cubit/profile_cubit.dart';
@@ -26,6 +27,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   bool _initialized = false;
+  Widget _startWidget = const SplashScreen();
 
   @override
   void initState() {
@@ -35,12 +37,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   Future<void> _initializeApp() async {
-    // Wait for at least 2 seconds for the animation to feel right
+    // Wait for at least 2 seconds for the splash animation to feel right
     await Future.wait([
       Future.delayed(const Duration(seconds: 2)),
       _performInit(),
     ]);
-    
+
     if (mounted) {
       setState(() {
         _initialized = true;
@@ -50,10 +52,30 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   Future<void> _performInit() async {
-    await DioHelper.inti();
+    DioHelper.init();
     await Hive.initFlutter();
     await CacheHelper.init();
     await NotificationService.init();
+
+    // ── Step 2: Retrieve state from cache ────────────────────────────────────
+    final bool onBoardingDone = CacheHelper.getData('onBoarding') == true;
+    final String? token = CacheHelper.getData('token') as String?;
+
+    // ── Step 3: Determine start widget ───────────────────────────────────────
+    // Condition A: Brand-new user – show onboarding
+    if (!onBoardingDone) {
+      _startWidget = const OnboardingScreen();
+    }
+    // Condition B: Seen intro but not logged in – go to login
+    else if (token == null || token.isEmpty) {
+      _startWidget = LoginScreen();
+    }
+    // Condition C: Already authenticated – go straight to home
+    else {
+      // ── Step 5: Inject token globally into DioHelper ──────────────────────
+      DioHelper.setToken(token);
+      _startWidget = const HomeLayout();
+    }
   }
 
   @override
@@ -72,6 +94,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // Show splash while initialising
     if (!_initialized) {
       return const MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -79,6 +102,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       );
     }
 
+    // ── Step 4: Inject the resolved start widget into MaterialApp ─────────────
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => ProfileCubit()),
@@ -93,7 +117,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             theme: lightTheme,
             darkTheme: darkTheme,
             themeMode: cubit.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            home: const HomeLayout(),
+            home: _startWidget,
           );
         },
       ),

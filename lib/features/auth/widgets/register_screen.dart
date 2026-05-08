@@ -12,6 +12,7 @@ class RegisterScreen extends StatelessWidget {
 
   final nameController = TextEditingController();
   final emailController = TextEditingController();
+  final mobileController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
@@ -138,6 +139,21 @@ class RegisterScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 20),
 
+                              // --- MOBILE INPUT ---
+                              defaultInputField(
+                                controler: mobileController,
+                                keybord: TextInputType.phone,
+                                text: "Mobile Number",
+                                prefix: Icons.phone_outlined,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter mobile number';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 20),
+
                               // --- PASSWORD INPUT ---
                               defaultInputField(
                                 controler: passwordController,
@@ -200,7 +216,15 @@ class RegisterScreen extends StatelessWidget {
                               GestureDetector(
                                 onTap: () {
                                   if (formKey.currentState!.validate()) {
-                                    navigateAndRemoveAll(context, const ProfileSetupScreen());
+                                    navigateAndRemoveAll(
+                                      context,
+                                      ProfileSetupScreen(
+                                        username: nameController.text,
+                                        email: emailController.text,
+                                        mobileNumber: mobileController.text,
+                                        password: passwordController.text,
+                                      ),
+                                    );
                                   }
                                 },
                                 child: Container(

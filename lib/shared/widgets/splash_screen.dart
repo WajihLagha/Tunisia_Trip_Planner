@@ -96,7 +96,7 @@ class _SplashScreenState extends State<SplashScreen>
 
 class JumpingDot extends StatefulWidget {
   final int index;
-  const JumpingDot({required this.index});
+  const JumpingDot({super.key, required this.index});
 
   @override
   State<JumpingDot> createState() => _JumpingDotState();

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:tunisian_trip_planner/features/accommodation_screen.dart';
+import 'package:tunisian_trip_planner/features/accommodation/accommodation_screen.dart';
 import 'package:tunisian_trip_planner/features/explore_screen.dart';
 import 'package:tunisian_trip_planner/features/transport/transport_screen.dart';
 import 'package:tunisian_trip_planner/features/home_layout/cubit/home_states.dart';

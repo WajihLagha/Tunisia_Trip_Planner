@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 import 'package:tunisian_trip_planner/features/ai/cubit/ai_trip_cubit.dart';
 import 'package:tunisian_trip_planner/features/ai/cubit/ai_trip_states.dart';
-import 'package:tunisian_trip_planner/features/places/data/mock_places_data.dart';
+import 'package:tunisian_trip_planner/features/places/models/places_category.dart';
 import 'package:tunisian_trip_planner/features/ai/screens/ai_itinerary_screen.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 
@@ -168,7 +168,7 @@ class _AiTripBodyState extends State<_AiTripBody> {
       content: Column(
         children: [
           SwitchListTile(
-            activeColor: activeColor,
+            activeThumbColor: activeColor,
             title: Text('Rent a Car?', style: TextStyle(color: textColor)),
             subtitle: Text('Will you have your own transport?', style: TextStyle(color: textColor.withValues(alpha: 0.7))),
             value: cubit.rentCar,
@@ -176,7 +176,7 @@ class _AiTripBodyState extends State<_AiTripBody> {
             secondary: Icon(Icons.directions_car, color: activeColor),
           ),
           SwitchListTile(
-            activeColor: activeColor,
+            activeThumbColor: activeColor,
             title: Text('Book Accommodation?', style: TextStyle(color: textColor)),
             subtitle: Text('Do you need us to suggest stays?', style: TextStyle(color: textColor.withValues(alpha: 0.7))),
             value: cubit.bookAccommodation,
@@ -189,26 +189,28 @@ class _AiTripBodyState extends State<_AiTripBody> {
   }
 
   Step _buildStep2(AiTripCubit cubit, bool isDark, Color textColor) {
-    final activeColor = isDark ? AppColors.green300 : AppColors.primary;
     return Step(
-      title: Text('Select Places', style: TextStyle(color: textColor)),
-      subtitle: Text('Where would you like to go?', style: TextStyle(color: textColor.withValues(alpha: 0.7))),
+      title: Text('Select Categories', style: TextStyle(color: textColor)),
+      subtitle: Text('What types of places do you prefer?', style: TextStyle(color: textColor.withValues(alpha: 0.7))),
       isActive: cubit.currentStep >= 1,
       state: cubit.currentStep > 1 ? StepState.complete : StepState.indexed,
-      content: Column(
-        children: MockPlacesData.places.map((place) {
-          final isSelected = cubit.selectedPlaces.contains(place);
-          return CheckboxListTile(
-            activeColor: activeColor,
-            title: Text(place.name ?? '', style: TextStyle(color: textColor)),
-            subtitle: Text(place.cityName ?? '', style: TextStyle(color: textColor.withValues(alpha: 0.7))),
-            value: isSelected,
-            onChanged: (val) => cubit.togglePlaceSelection(place),
-            secondary: CircleAvatar(
-              backgroundImage: AssetImage(place.mainImageUrl ?? ''),
-            ),
-          );
-        }).toList(),
+      content: Align(
+        alignment: Alignment.centerLeft,
+        child: Wrap(
+          spacing: 8.0,
+          runSpacing: 8.0,
+          children: PlacesCategory.values.map((cat) {
+            final isSelected = cubit.selectedCategories.contains(cat);
+            final label = cat.name[0].toUpperCase() + cat.name.substring(1);
+            return FilterChip(
+              label: Text(label, style: TextStyle(color: isSelected && !isDark ? AppColors.green950 : textColor)),
+              selected: isSelected,
+              selectedColor: isDark ? AppColors.green700 : AppColors.accent,
+              backgroundColor: isDark ? AppColors.surfaceVariantD : AppColors.surfaceVariantL,
+              onSelected: (val) => cubit.toggleCategorySelection(cat),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -276,7 +278,7 @@ class _AiTripBodyState extends State<_AiTripBody> {
           const SizedBox(height: 16),
           Wrap(
             spacing: 8.0,
-            children: ['History', 'Nature', 'Culture', 'Beach', 'Desert']
+            children: ['Family Friendly', 'Budget Friendly', 'Luxury', 'Relaxing', 'Adventure', 'Romantic', 'Vegan Options', 'Accessible']
                 .map((pref) {
               final isSelected = cubit.selectedPreferences.contains(pref);
               return FilterChip(

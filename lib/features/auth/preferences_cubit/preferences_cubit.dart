@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tunisian_trip_planner/shared/network/local/cache_helper.dart';
 
 import 'preferences_state.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/end_points.dart';
 
 class PreferencesCubit extends Cubit<PreferencesState> {
   static const _cacheKey = 'user_preferences';
@@ -63,6 +65,98 @@ class PreferencesCubit extends Cubit<PreferencesState> {
       } catch (_) {
         // corrupted cache – silently ignore
       }
+    }
+  }
+
+  Future<void> createUser({
+    required String username,
+    required String email,
+    required String mobileNumber,
+    required String password,
+  }) async {
+    emit(state.copyWith(status: PreferencesStatus.loading));
+
+    try {
+      final requestData = {
+        "username": username,
+        "email": email,
+        "password": password,
+        "mobileNumber": mobileNumber,
+        "address": state.address ?? "",
+        "ageGroup": state.ageGroup ?? "GENZ",
+        "travelStyles": state.travelStyle,
+        "groupSize": state.companions?.toUpperCase() ?? "SOLO",
+        "budget": state.budget?.replaceAll(" ", "_").toUpperCase() ?? "MODERATE",
+        "transportType": state.transport.isNotEmpty ? state.transport.first.replaceAll(" ", "_").toUpperCase() : "CAR_RENTAL",
+        "AccommodationType": state.accommodation.isNotEmpty ? state.accommodation.first.toUpperCase() : "HOTEL",
+      };
+
+      final response = await DioHelper.postData(
+        url: "users", // http://localhost:8080/api-v1/users
+        data: requestData,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        emit(state.copyWith(status: PreferencesStatus.userCreated));
+      } else {
+        emit(state.copyWith(
+          status: PreferencesStatus.error,
+          errorMessage: "Failed to create user",
+        ));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        status: PreferencesStatus.error,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> startPollingForVerification({
+    required String username,
+    required String password,
+  }) async {
+    emit(state.copyWith(status: PreferencesStatus.waitingForVerification));
+
+    int maxAttempts = 20; // 60 seconds total if waiting 3s each
+    bool verified = false;
+
+    for (int i = 0; i < maxAttempts; i++) {
+      try {
+        final response = await DioHelper.postData(
+          url: EndPoints.keycloakBaseUrl,
+          contentType: 'application/x-www-form-urlencoded',
+          data: {
+            'client_id': 'oauth-pkce',
+            'grant_type': 'password',
+            'username': username,
+            'password': password,
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final token = response.data['access_token'];
+          if (token != null) {
+            await CacheHelper.putData(key: 'token', value: token);
+            DioHelper.setToken(token);
+            emit(state.copyWith(status: PreferencesStatus.loginSuccess, token: token));
+            verified = true;
+            break;
+          }
+        }
+      } catch (e) {
+        // Expected to fail if email is not verified yet.
+      }
+      
+      // Wait for 3 seconds before trying again
+      await Future.delayed(const Duration(seconds: 3));
+    }
+
+    if (!verified) {
+      emit(state.copyWith(
+        status: PreferencesStatus.verificationTimeout,
+        errorMessage: "Email verification timed out. Please try logging in again.",
+      ));
     }
   }
 }

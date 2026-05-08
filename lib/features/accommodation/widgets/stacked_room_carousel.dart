@@ -6,8 +6,13 @@ import 'package:tunisian_trip_planner/features/accommodation/models/room.dart';
 
 class StackedRoomCarousel extends StatefulWidget {
   final List<RoomDto> rooms;
+  final void Function(RoomDto room)? onRoomTap;
 
-  const StackedRoomCarousel({super.key, required this.rooms});
+  const StackedRoomCarousel({
+    super.key,
+    required this.rooms,
+    this.onRoomTap,
+  });
 
   @override
   State<StackedRoomCarousel> createState() => _StackedRoomCarouselState();
@@ -15,13 +20,23 @@ class StackedRoomCarousel extends StatefulWidget {
 
 class _StackedRoomCarouselState extends State<StackedRoomCarousel> {
   late PageController _pageController;
+  // Deferred flag — PageView is only inserted into the tree after the first
+  // frame, ensuring its slivers are fully laid out before any hit-testing
+  // occurs. This prevents the `child.geometry! == null` crash in
+  // RenderViewportBase.hitTestChildren during route transitions.
+  bool _controllerReady = false;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(
-      viewportFraction: 0.78, // Show prev/next cards peeking at corners
+      viewportFraction: 0.78,
     );
+    // Wait for the first frame before showing the PageView so that the
+    // PageController is attached and slivers are fully laid out.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _controllerReady = true);
+    });
   }
 
   @override
@@ -34,6 +49,12 @@ class _StackedRoomCarouselState extends State<StackedRoomCarousel> {
   Widget build(BuildContext context) {
     if (widget.rooms.isEmpty) return const SizedBox.shrink();
 
+    // Show a placeholder until the controller is ready to avoid
+    // hit-test crashes on uninitialized PageView slivers.
+    if (!_controllerReady) {
+      return const SizedBox(height: 240);
+    }
+
     return SizedBox(
       height: 240,
       child: PageView.builder(
@@ -45,7 +66,9 @@ class _StackedRoomCarouselState extends State<StackedRoomCarousel> {
             animation: _pageController,
             builder: (context, child) {
               double value = 0;
-              if (_pageController.position.haveDimensions) {
+              // Guard both hasClients AND haveDimensions before accessing page
+              if (_pageController.hasClients &&
+                  _pageController.position.haveDimensions) {
                 value = (_pageController.page ?? 0) - index;
               }
 
@@ -65,7 +88,10 @@ class _StackedRoomCarouselState extends State<StackedRoomCarousel> {
                 ),
               );
             },
-            child: _buildCard(context, widget.rooms[index]),
+            child: GestureDetector(
+              onTap: () => widget.onRoomTap?.call(widget.rooms[index]),
+              child: _buildCard(context, widget.rooms[index]),
+            ),
           );
         },
       ),

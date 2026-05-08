@@ -403,73 +403,74 @@ class CarDetailScreen extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'TOTAL PRICE',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mutedText,
-                    letterSpacing: 0.8,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'TOTAL PRICE',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mutedText,
+                      letterSpacing: 0.8,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '\$${vehicle.vehiclePrice?.toInt() ?? 0}',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          color: cs.onSurface,
+                  const SizedBox(height: 4),
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '\$${vehicle.vehiclePrice?.toInt() ?? 0}',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                            color: cs.onSurface,
+                          ),
                         ),
-                      ),
-                      TextSpan(
-                        text: ' /day',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.mutedText,
+                        TextSpan(
+                          text: ' /day',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.mutedText,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-            SizedBox(
-              height: 52,
-              child: ElevatedButton(
-                onPressed: vehicle.isAvailable
-                    ? () {
-                        navigateTo(
-                          context,
-                          RentalConfirmScreen(vehicle: vehicle),
-                        );
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: cs.primary,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor:
-                      AppColors.mutedText.withValues(alpha: 0.3),
-                  disabledForegroundColor: AppColors.mutedText,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  elevation: 0,
+            const SizedBox(width: 16),
+            ElevatedButton(
+              onPressed: vehicle.isAvailable
+                  ? () {
+                      navigateTo(
+                        context,
+                        RentalConfirmScreen(vehicle: vehicle),
+                      );
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: cs.primary,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(140, 52),
+                disabledBackgroundColor:
+                    AppColors.mutedText.withValues(alpha: 0.3),
+                disabledForegroundColor: AppColors.mutedText,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Text(
-                  'Book Now',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                elevation: 0,
+              ),
+              child: Text(
+                'Book Now',
+                style: GoogleFonts.dmSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),

@@ -5,6 +5,8 @@ import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 import 'package:tunisian_trip_planner/features/accommodation/models/accommodation.dart';
 import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_cubit.dart';
 import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_states.dart';
+import 'package:tunisian_trip_planner/features/accommodation/room_detail_screen.dart';
+import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 
 class AccommodationDetailScreen extends StatelessWidget {
   final AccommodationDto accommodation;
@@ -17,7 +19,8 @@ class AccommodationDetailScreen extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      backgroundColor:
+          isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(context, isDark),
@@ -33,7 +36,7 @@ class AccommodationDetailScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   _buildAboutSection(isDark),
                   const SizedBox(height: 32),
-                  _buildAvailableRooms(isDark),
+                  _buildAvailableRooms(context, isDark),
                   const SizedBox(height: 32),
                   _buildLocationSection(isDark),
                   const SizedBox(height: 100), // padding for bottom bar
@@ -43,7 +46,7 @@ class AccommodationDetailScreen extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomBar(isDark),
+      bottomNavigationBar: _buildBottomBar(context, isDark),
     );
   }
 
@@ -84,18 +87,30 @@ class AccommodationDetailScreen extends StatelessWidget {
           ),
           child: BlocBuilder<FavouritesCubit, FavouritesStates>(
             builder: (context, state) {
-              final isFav = state is FavouritesLoaded &&
-                  state.favouriteAccommodationIds.contains(accommodation.id.toString());
+              final accommodationId = accommodation.id?.toString();
+              final isFav = accommodationId != null &&
+                  FavouritesCubit.get(context)
+                      .isAccommodationFavourite(accommodationId);
+
               return IconButton(
                 icon: Icon(
-                  isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                  color: isFav ? Colors.red : (isDark ? Colors.white : Colors.black),
+                  isFav
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                  color:
+                      isFav
+                          ? Colors.red
+                          : (isDark ? Colors.white : Colors.black),
                 ),
                 onPressed: () {
-                  if (accommodation.id != null) {
-                    try {
-                      FavouritesCubit.get(context).toggleAccommodationFavourite(accommodation.id.toString());
-                    } catch (_) {}
+                  if (accommodationId != null) {
+                    FavouritesCubit.get(context).toggleAccommodationFavourite(
+                      accommodationId,
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Cannot favourite: missing ID')),
+                    );
                   }
                 },
               );
@@ -104,13 +119,21 @@ class AccommodationDetailScreen extends StatelessWidget {
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        background: Image.asset(
-          (accommodation.images?.isNotEmpty == true ? accommodation.images!.first.imageUrl : null) ?? 'assets/images/hotel_placeholder.png',
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Container(
-            color: Colors.grey,
-            child: const Icon(Icons.image, size: 50, color: Colors.white),
-          ),
+        background: Builder(
+          builder: (context) {
+            final url = accommodation.images?.isNotEmpty == true
+                ? accommodation.images!.first.imageUrl
+                : null;
+            final safeUrl = (url != null && url.isNotEmpty) ? url : null;
+            return Image.asset(
+              safeUrl ?? 'assets/images/default_hotel.jpg',
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Image.asset(
+                'assets/images/default_hotel.jpg',
+                fit: BoxFit.cover,
+              ),
+            );
+          },
         ),
       ),
     );
@@ -129,13 +152,17 @@ class AccommodationDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.green500.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      accommodation.accommodationType?.name.toUpperCase() ?? 'HOTEL',
+                      accommodation.accommodationType?.name.toUpperCase() ??
+                          'HOTEL',
                       style: GoogleFonts.dmSans(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -150,7 +177,10 @@ class AccommodationDetailScreen extends StatelessWidget {
                     style: GoogleFonts.playfairDisplay(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
+                      color:
+                          isDark
+                              ? AppColors.onSurfaceDark
+                              : AppColors.onSurfaceLight,
                       height: 1.2,
                     ),
                   ),
@@ -166,17 +196,24 @@ class AccommodationDetailScreen extends StatelessWidget {
                   style: GoogleFonts.dmSans(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
+                    color:
+                        isDark
+                            ? AppColors.onSurfaceDark
+                            : AppColors.onSurfaceLight,
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
         const SizedBox(height: 16),
         Row(
           children: [
-            Icon(Icons.location_on, size: 16, color: isDark ? Colors.white70 : Colors.black87),
+            Icon(
+              Icons.location_on,
+              size: 16,
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
@@ -209,20 +246,24 @@ class AccommodationDetailScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceVariantD : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+        border: Border.all(
+          color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundImage: const AssetImage('assets/images/default_profile.jpg'), // Placeholder
+            backgroundImage: const AssetImage(
+              'assets/images/default_profile.jpg',
+            ), // Placeholder
             backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
             child: const Icon(Icons.person, color: Colors.grey),
           ),
@@ -245,7 +286,10 @@ class AccommodationDetailScreen extends StatelessWidget {
                   style: GoogleFonts.dmSans(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
+                    color:
+                        isDark
+                            ? AppColors.onSurfaceDark
+                            : AppColors.onSurfaceLight,
                   ),
                 ),
               ],
@@ -305,8 +349,9 @@ class AccommodationDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAvailableRooms(bool isDark) {
-    if (accommodation.rooms == null || accommodation.rooms!.isEmpty) {
+  Widget _buildAvailableRooms(BuildContext context, bool isDark) {
+    final rooms = accommodation.rooms;
+    if (rooms == null || rooms.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -322,34 +367,49 @@ class AccommodationDetailScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        ...accommodation.rooms!.map((room) => _buildRoomCard(room, isDark)),
+        ...rooms.map((room) => _buildRoomCard(context, room, isDark)),
       ],
     );
   }
 
-  Widget _buildRoomCard(var room, bool isDark) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceVariantD : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+  Widget _buildRoomCard(BuildContext context, var room, bool isDark) {
+    return GestureDetector(
+      onTap: () => navigateTo(
+        context,
+        RoomDetailScreen(
+          room: room,
+          accommodation: accommodation,
+        ),
       ),
-      child: Column(
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceVariantD : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+          ),
+        ),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             child: Image.asset(
-              (room.images?.isNotEmpty == true ? room.images!.first.imageUrl : null) ?? 'assets/images/room_placeholder.png',
+              (room.images?.isNotEmpty == true
+                      ? room.images!.first.imageUrl
+                      : null) ??
+                  'assets/images/default_room.jpg',
               height: 180,
               width: double.infinity,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                height: 180,
-                color: isDark ? Colors.grey[800] : Colors.grey[300],
-                child: const Icon(Icons.image, color: Colors.grey, size: 40),
-              ),
+              errorBuilder:
+                  (context, error, stackTrace) => Image.asset(
+                    'assets/images/default_room.jpg',
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
             ),
           ),
           Padding(
@@ -366,25 +426,37 @@ class AccommodationDetailScreen extends StatelessWidget {
                         style: GoogleFonts.dmSans(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
+                          color:
+                              isDark
+                                  ? AppColors.onSurfaceDark
+                                  : AppColors.onSurfaceLight,
                         ),
                       ),
                     ),
                     if (room.availableRooms != null && room.availableRooms! > 0)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: room.availableRooms! <= 2
-                              ? Colors.orange.withValues(alpha: 0.2)
-                              : Colors.green.withValues(alpha: 0.2),
+                          color:
+                              room.availableRooms! <= 2
+                                  ? Colors.orange.withValues(alpha: 0.2)
+                                  : Colors.green.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          room.availableRooms! <= 2 ? '${room.availableRooms} LEFT' : 'AVAILABLE',
+                          room.availableRooms! <= 2
+                              ? '${room.availableRooms} LEFT'
+                              : 'AVAILABLE',
                           style: GoogleFonts.dmSans(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
-                            color: room.availableRooms! <= 2 ? Colors.orange : Colors.green,
+                            color:
+                                room.availableRooms! <= 2
+                                    ? Colors.orange
+                                    : Colors.green,
                           ),
                         ),
                       ),
@@ -393,13 +465,33 @@ class AccommodationDetailScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.person_outline, size: 16, color: AppColors.mutedText),
+                    Icon(
+                      Icons.person_outline,
+                      size: 16,
+                      color: AppColors.mutedText,
+                    ),
                     const SizedBox(width: 4),
-                    Text('${room.capacity ?? 2} Guests', style: GoogleFonts.dmSans(color: AppColors.mutedText, fontSize: 13)),
+                    Text(
+                      '${room.capacity ?? 2} Guests',
+                      style: GoogleFonts.dmSans(
+                        color: AppColors.mutedText,
+                        fontSize: 13,
+                      ),
+                    ),
                     const SizedBox(width: 16),
-                    Icon(Icons.bed_outlined, size: 16, color: AppColors.mutedText),
+                    Icon(
+                      Icons.bed_outlined,
+                      size: 16,
+                      color: AppColors.mutedText,
+                    ),
                     const SizedBox(width: 4),
-                    Text('1 King Bed', style: GoogleFonts.dmSans(color: AppColors.mutedText, fontSize: 13)),
+                    Text(
+                      '1 King Bed',
+                      style: GoogleFonts.dmSans(
+                        color: AppColors.mutedText,
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -412,13 +504,22 @@ class AccommodationDetailScreen extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Price per night', style: GoogleFonts.dmSans(color: AppColors.mutedText, fontSize: 12)),
+                        Text(
+                          'Price per night',
+                          style: GoogleFonts.dmSans(
+                            color: AppColors.mutedText,
+                            fontSize: 12,
+                          ),
+                        ),
                         Text(
                           '\$${room.price?.round() ?? 0}',
                           style: GoogleFonts.playfairDisplay(
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
+                            color:
+                                isDark
+                                    ? AppColors.onSurfaceDark
+                                    : AppColors.onSurfaceLight,
                           ),
                         ),
                       ],
@@ -427,9 +528,16 @@ class AccommodationDetailScreen extends StatelessWidget {
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
                         foregroundColor: isDark ? Colors.white : Colors.black,
-                        side: BorderSide(color: isDark ? Colors.white : Colors.black),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        side: BorderSide(
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                       ),
                       child: const Text('Select Room'),
                     ),
@@ -440,7 +548,8 @@ class AccommodationDetailScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ),   // closes Container
+    );   // closes GestureDetector
   }
 
   Widget _buildLocationSection(bool isDark) {
@@ -465,14 +574,27 @@ class AccommodationDetailScreen extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Placeholder for Map
-                Image.asset(
-                  'assets/images/map_placeholder.png', // Fallback map placeholder
-                  fit: BoxFit.cover,
+                Container(
                   width: double.infinity,
-                  errorBuilder: (context, error, stackTrace) => const Opacity(
-                    opacity: 0.5,
-                    child: Icon(Icons.map, size: 80, color: Colors.grey),
+                  color: isDark ? Colors.grey[800] : Colors.blue[100],
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.map,
+                          size: 60,
+                          color: isDark ? Colors.white30 : Colors.black38,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Map View',
+                          style: TextStyle(
+                            color: isDark ? Colors.white30 : Colors.black38,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const Icon(Icons.location_on, color: Colors.red, size: 40),
@@ -483,85 +605,95 @@ class AccommodationDetailScreen extends StatelessWidget {
         const SizedBox(height: 12),
         Text(
           'Located in the heart of the historic Medina, a UNESCO World Heritage site.',
-          style: GoogleFonts.dmSans(
-            fontSize: 14,
-            color: AppColors.mutedText,
-          ),
-        )
+          style: GoogleFonts.dmSans(fontSize: 14, color: AppColors.mutedText),
+        ),
       ],
     );
   }
 
-  Widget _buildBottomBar(bool isDark) {
+  Widget _buildBottomBar(BuildContext context, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
-        border: Border(top: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[200]!)),
+        border: Border(
+          top: BorderSide(
+            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -4),
-          )
+          ),
         ],
       ),
       child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Starting from',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 12,
-                    color: AppColors.mutedText,
-                  ),
-                ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '\$${accommodation.priceMin?.round() ?? 0}',
+                      'Starting from',
                       style: GoogleFonts.dmSans(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
-                      ),
-                    ),
-                    Text(
-                      ' /night',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 14,
+                        fontSize: 12,
                         color: AppColors.mutedText,
                       ),
                     ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '\$${accommodation.priceMin?.round() ?? 0}',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color:
+                                isDark
+                                    ? AppColors.onSurfaceDark
+                                    : AppColors.onSurfaceLight,
+                          ),
+                        ),
+                        Text(
+                          ' /night',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 14,
+                            color: AppColors.mutedText,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
-            ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.green900,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.green900,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(120, 56),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: Text(
+                  'Book Now',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-              child: Text(
-                'Book Now',
-                style: GoogleFonts.dmSans(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

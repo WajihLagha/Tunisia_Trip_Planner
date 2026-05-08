@@ -145,7 +145,7 @@ class AiItineraryScreen extends StatelessWidget {
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
