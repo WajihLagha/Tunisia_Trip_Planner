@@ -8,6 +8,9 @@ import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_cubit.dart';
 import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_states.dart';
 import 'package:tunisian_trip_planner/features/places/models/places_response.dart';
+import 'package:tunisian_trip_planner/features/reviews/widgets/reviews_section.dart';
+import 'package:tunisian_trip_planner/features/reviews/models/review_target_type.dart';
+import 'package:tunisian_trip_planner/shared/widgets/place_image_widget.dart';
 
 class PlaceDetailsScreen extends StatefulWidget {
   final PlacesResponse place;
@@ -87,10 +90,8 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                     return GestureDetector(
                       onTap: () {
                         if (place.id != null) {
-                          try {
-                            FavouritesCubit.get(context)
-                                .togglePlaceFavourite(place.id!);
-                          } catch (_) {}
+                          FavouritesCubit.get(context)
+                              .togglePlaceFavourite(place.id!);
                         }
                       },
                       child: ClipRRect(
@@ -125,13 +126,9 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                 children: [
                   Hero(
                     tag: 'place_${place.id}',
-                    child: Image.asset(
-                      _allImages[_selectedImageIndex],
+                    child: PlaceImageWidget(
+                      imageUrl: _allImages[_selectedImageIndex],
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                          color: cs.surfaceContainerHighest,
-                          child: const Icon(Icons.image_not_supported,
-                              size: 48)),
                     ),
                   ),
                   // Bottom gradient
@@ -150,45 +147,55 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                       ),
                     ),
                   ),
-                  // Category badge
-                  Positioned(
-                    bottom: 60,
-                    left: 20,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: cs.primary,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        place.category?.name.toUpperCase() ?? '',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Place name
+                  // Category & Name Info
                   Positioned(
                     bottom: 20,
                     left: 20,
                     right: 20,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Category badge
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Text(
+                                place.category?.name.toUpperCase() ?? '',
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Place name
                         Text(
                           place.name ?? '',
                           style: GoogleFonts.playfairDisplay(
-                            fontSize: 26,
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
+                        // Location
                         Row(
                           children: [
                             const Icon(Icons.location_on_rounded,
@@ -370,12 +377,9 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: Image.asset(
-                              _allImages[i],
+                            child: PlaceImageWidget(
+                              imageUrl: _allImages[i],
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                  color:
-                                      cs.surfaceContainerHighest),
                             ),
                           ),
                         ),
@@ -507,6 +511,13 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                     ),
                   ),
                 ],
+
+                // ── Reviews ─────────────────────────────────────
+                if (place.id != null)
+                  ReviewsSection(
+                    targetId: place.id!,
+                    targetType: ReviewTargetType.place,
+                  ),
 
                 const SizedBox(height: 120),
               ],

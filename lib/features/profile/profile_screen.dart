@@ -12,8 +12,25 @@ import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 
 
 
-class ProfileScreen extends StatelessWidget {
+import 'package:tunisian_trip_planner/features/profile/models/user_model.dart';
+import 'package:tunisian_trip_planner/features/profile/profile_details_screen.dart';
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load profile data when screen opens
+    final cubit = ProfileCubit.get(context);
+    if (cubit.user == null) {
+      cubit.loadUserProfile();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +39,7 @@ class ProfileScreen extends StatelessWidget {
         final cubit = ProfileCubit.get(context);
         final isDark = cubit.isDarkMode;
         final cs = isDark ? darkTheme.colorScheme : lightTheme.colorScheme;
+        final user = cubit.user;
 
         return Scaffold(
             backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
@@ -34,6 +52,8 @@ class ProfileScreen extends StatelessWidget {
                     isDark: isDark,
                     cs: cs,
                     statusBarHeight: MediaQuery.of(context).padding.top,
+                    user: user,
+                    profileImage: cubit.selectedProfileImage,
                   ),
                 ),
 
@@ -60,13 +80,14 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       _buildMenuItem(
-                        icon: Icons.notifications_outlined,
-                        title: 'Notifications',
-                        subtitle: '2 unread',
-                        onTap: () {},
+                        icon: Icons.person_outline,
+                        title: 'Profile Details',
+                        subtitle: 'Personal info & preferences',
+                        onTap: () {
+                          navigateTo(context, const ProfileDetailsScreen());
+                        },
                         cs: cs,
                         isDark: isDark,
-                        showBadge: true,
                       ),
 
                       const SizedBox(height: 24),
@@ -419,11 +440,15 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
   final bool isDark;
   final ColorScheme cs;
   final double statusBarHeight;
+  final UserModel? user;
+  final String profileImage;
 
   const _ProfileHeaderDelegate({
     required this.isDark,
     required this.cs,
     required this.statusBarHeight,
+    required this.user,
+    required this.profileImage,
   });
 
   @override
@@ -434,7 +459,7 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(covariant _ProfileHeaderDelegate old) =>
-      old.isDark != isDark || old.statusBarHeight != statusBarHeight;
+      old.isDark != isDark || old.statusBarHeight != statusBarHeight || old.user != user || old.profileImage != profileImage;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
@@ -461,6 +486,9 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
     final expandedOpacity = (1.0 - t * 1.8).clamp(0.0, 1.0);
     final collapsedOpacity = ((t - 0.5) * 2).clamp(0.0, 1.0);
     final editOpacity = (1.0 - t * 3).clamp(0.0, 1.0);
+    
+    final displayName = user?.userName ?? 'Loading...';
+    final displayEmail = user?.email ?? 'Loading...';
 
     return Container(
       decoration: const BoxDecoration(
@@ -477,35 +505,42 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
           Positioned(
             top: avatarTop,
             left: avatarLeft,
-            child: Stack(
-              alignment: Alignment.bottomRight,
-              children: [
-                Container(
-                  width: avatarSize,
-                  height: avatarSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 3),
-                    image: const DecorationImage(
-                      image: AssetImage('assets/images/default_profile.jpg'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                if (editOpacity > 0)
-                  Opacity(
-                    opacity: editOpacity,
-                    child: Container(
-                      padding: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1B1B1F),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+            child: GestureDetector(
+              onTap: () {
+                if (editOpacity > 0.5) {
+                  _showImagePickerPanel(context);
+                }
+              },
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  Container(
+                    width: avatarSize,
+                    height: avatarSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3),
+                      image: DecorationImage(
+                        image: AssetImage(profileImage),
+                        fit: BoxFit.cover,
                       ),
-                      child: const Icon(Icons.edit_rounded, size: 12, color: Colors.white),
                     ),
                   ),
-              ],
+                  if (editOpacity > 0)
+                    Opacity(
+                      opacity: editOpacity,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B1B1F),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(Icons.edit_rounded, size: 12, color: Colors.white),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
 
@@ -518,7 +553,7 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
               child: Opacity(
                 opacity: expandedOpacity,
                 child: Text(
-                  'Sarah Ben Ali',
+                  displayName,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.dmSans(
                     fontSize: nameFontSize,
@@ -538,7 +573,7 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
               child: Opacity(
                 opacity: expandedOpacity,
                 child: Text(
-                  'sarah.b@example.com',
+                  displayEmail,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.dmSans(
                     fontSize: 13,
@@ -568,7 +603,7 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
                       ),
                     ),
                     Text(
-                      'Sarah Ben Ali',
+                      displayName,
                       style: GoogleFonts.dmSans(
                         fontSize: 12,
                         color: Colors.white.withValues(alpha: 0.7),
@@ -580,6 +615,91 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
         ],
       ),
+    );
+  }
+
+  void _showImagePickerPanel(BuildContext context) {
+    final images = [
+      'assets/images/profile/default_profile.jpg',
+      'assets/images/profile/default_profile2.jpg',
+      'assets/images/profile/default_profile3.jpg',
+      'assets/images/profile/default_profile4.jpg',
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: isDark ? AppColors.surfaceVariantD : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: cs.outline.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Choose Profile Picture',
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: cs.onSurface,
+                ),
+              ),
+              const SizedBox(height: 24),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                ),
+                itemCount: images.length,
+                itemBuilder: (context, index) {
+                  final imagePath = images[index];
+                  final isSelected = imagePath == profileImage;
+
+                  return GestureDetector(
+                    onTap: () {
+                      ProfileCubit.get(context).changeProfileImage(imagePath);
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected ? cs.primary : Colors.transparent,
+                          width: 4,
+                        ),
+                        image: DecorationImage(
+                          image: AssetImage(imagePath),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ));
+      },
     );
   }
 }

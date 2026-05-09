@@ -28,6 +28,10 @@ class AiItineraryScreen extends StatelessWidget {
           itinerary.title ?? 'Your Custom Trip',
           style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
         ),
+        leading: IconButton(
+          icon: const Icon(Icons.close_rounded),
+          onPressed: () => Navigator.pop(context),
+        ),
         elevation: 0,
         actions: [
           IconButton(

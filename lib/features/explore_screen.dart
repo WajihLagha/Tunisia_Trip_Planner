@@ -11,7 +11,9 @@ import 'package:tunisian_trip_planner/features/places/models/places_category.dar
 import 'package:tunisian_trip_planner/features/places/models/places_response.dart';
 import 'package:tunisian_trip_planner/features/places/screens/place_details_screen.dart';
 import 'package:tunisian_trip_planner/features/places/widgets/places_filter_bottom_sheet.dart';
+import 'package:tunisian_trip_planner/features/places/screens/places_search_screen.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
+import 'package:tunisian_trip_planner/shared/widgets/place_image_widget.dart';
 
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({super.key});
@@ -33,7 +35,6 @@ class _ExploreScreenView extends StatefulWidget {
 }
 
 class _ExploreScreenViewState extends State<_ExploreScreenView> {
-  final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _showCollapsed = false;
 
@@ -48,15 +49,11 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
         setState(() => _showCollapsed = shouldCollapse);
       }
     });
-    _searchController.addListener(() {
-      PlacesCubit.get(context).searchPlaces(_searchController.text);
-    });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -149,7 +146,6 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                     children: [
                       Expanded(
                         child: _SearchBar(
-                          controller: _searchController,
                           isDark: isDark,
                           colorScheme: cs,
                         ),
@@ -166,6 +162,7 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                   ),
                 ),
               ),
+
 
               // ── Category Chips ────────────────────────────────
               SliverToBoxAdapter(
@@ -482,45 +479,46 @@ class _GlassIconButton extends StatelessWidget {
 // Search Bar
 // ─────────────────────────────────────────────────────────────────────────────
 class _SearchBar extends StatelessWidget {
-  final TextEditingController controller;
   final bool isDark;
   final ColorScheme colorScheme;
 
   const _SearchBar(
-      {required this.controller,
-      required this.isDark,
+      {required this.isDark,
       required this.colorScheme});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 50,
-      decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.surfaceVariantD
-            : colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
+    return GestureDetector(
+      onTap: () => navigateTo(context, const PlacesSearchScreen()),
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: isDark
+              ? AppColors.surfaceVariantD
+              : colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            if (!isDark)
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.search_rounded, color: colorScheme.primary, size: 20),
+            const SizedBox(width: 12),
+            Text(
+              'Search places, cities...',
+              style: GoogleFonts.dmSans(
+                fontSize: 14,
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
             ),
-        ],
-      ),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          hintText: 'Search places, cities...',
-          hintStyle: GoogleFonts.dmSans(fontSize: 14),
-          prefixIcon:
-              Icon(Icons.search_rounded, color: colorScheme.primary, size: 20),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 14, horizontal: 0),
+          ],
         ),
       ),
     );
@@ -718,14 +716,9 @@ class _PlaceCard extends StatelessWidget {
                     children: [
                       Hero(
                         tag: 'place_${place.id}',
-                        child: Image.asset(
-                          place.mainImageUrl ?? '',
+                        child: PlaceImageWidget(
+                          imageUrl: place.mainImageUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: cs.surfaceContainerHighest,
-                            child: Icon(Icons.image_not_supported,
-                                color: cs.onSurfaceVariant),
-                          ),
                         ),
                       ),
                       // Gradient

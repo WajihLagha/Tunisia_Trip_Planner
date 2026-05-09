@@ -44,13 +44,14 @@ class PlacesResponse {
 
   factory PlacesResponse.fromJson(Map<String, dynamic> json) {
     return PlacesResponse(
-      id: json['id'] as String?,
+      id: json['id']?.toString(),
       ownerId: json['ownerId'] as String?,
       cityName: json['cityName'] as String?,
       stateName: json['stateName'] as String?,
-      category: json['category'] != null 
+      // Backend sends 'Category' with capital C
+      category: (json['Category'] ?? json['category']) != null
           ? PlacesCategory.values.firstWhere(
-              (e) => e.name.toLowerCase() == json['category'].toString().toLowerCase(),
+              (e) => e.name.toUpperCase() == (json['Category'] ?? json['category']).toString().toUpperCase(),
               orElse: () => PlacesCategory.history,
             )
           : null,

@@ -21,22 +21,22 @@ class UserDto {
 }
 
 class AiUserReview {
-  final String? id;
-  final String? reviewText;
+  final String? placeName;
   final double? rating;
+  final String? category;
 
-  AiUserReview({this.id, this.reviewText, this.rating});
+  AiUserReview({this.placeName, this.rating, this.category});
 
   Map<String, dynamic> toJson() => {
-    if (id != null) 'id': id,
-    if (reviewText != null) 'reviewText': reviewText,
+    if (placeName != null) 'placeName': placeName,
     if (rating != null) 'rating': rating,
+    if (category != null) 'category': category,
   };
   
   factory AiUserReview.fromJson(Map<String, dynamic> json) => AiUserReview(
-    id: json['id'] as String?,
-    reviewText: json['reviewText'] as String?,
+    placeName: json['placeName'] as String?,
     rating: (json['rating'] as num?)?.toDouble(),
+    category: json['category'] as String?,
   );
 }
 

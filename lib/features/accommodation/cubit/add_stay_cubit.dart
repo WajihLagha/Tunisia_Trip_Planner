@@ -1,6 +1,10 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:tunisian_trip_planner/shared/network/local/cache_helper.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/end_points.dart';
 import 'package:tunisian_trip_planner/features/accommodation/cubit/add_stay_states.dart';
 
 class AddStayCubit extends Cubit<AddStayStates> {
@@ -51,12 +55,45 @@ class AddStayCubit extends Cubit<AddStayStates> {
 
     emit(AddStayLoading());
 
-    // Mock API call
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      final ownerId = CacheHelper.getData('userId') ?? "69ef4f28a88bc7f8fd36b78e";
+      
+      // Parse location into city and state (mock logic)
+      final locParts = location.split(',');
+      final city = locParts.isNotEmpty ? locParts[0].trim() : 'Unknown';
+      final state = locParts.length > 1 ? locParts[1].trim() : 'Unknown';
+
+      final Map<String, dynamic> data = {
+        "ownerId": ownerId,
+        "cityName": city,
+        "stateName": state,
+        "Category": propertyType.toUpperCase(), // Maps UI property type or defaults
+        "name": name,
+        "description": description,
+        "address": location,
+        "latitude": 10.0,
+        "longitude": 10.0,
+        "phoneNumber": "22999888",
+        "email": "test@test.tn",
+        "averagePrice": pricePerNight,
+        "mainImageUrl": "http://example.com",
+        "images": [
+          {
+            "id": 1,
+            "imageUrl": "https://virage.png.tn"
+          }
+        ]
+      };
+
+      await DioHelper.postData(
+        url: EndPoints.places,
+        data: data,
+      );
+
       emit(AddStaySuccess());
     } catch (error) {
-      emit(AddStayError(error.toString()));
+      debugPrint('[AddStayCubit] submitStay error: $error');
+      emit(AddStayError('Something went wrong.'));
     }
   }
 }

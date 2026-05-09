@@ -92,4 +92,33 @@ class AiItinerary {
       days: days,
     );
   }
+
+  /// Parses the backend's raw map response: {"day1": "Place A -> Place B", "day2": "..."}
+  factory AiItinerary.fromRawMap(Map<String, dynamic> raw) {
+    // Sort keys so day1, day2... appear in order
+    final keys = raw.keys.toList()
+      ..sort((a, b) {
+        final numA = int.tryParse(a.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+        final numB = int.tryParse(b.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+        return numA.compareTo(numB);
+      });
+
+    final days = keys.asMap().entries.map((entry) {
+      final dayNum = entry.key + 1;
+      final rawPath = raw[entry.value].toString();
+      final places = rawPath
+          .split(' -> ')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      return AiDayPlan(day: dayNum, places: places);
+    }).toList();
+
+    return AiItinerary(
+      title: 'Your AI Tunisia Trip',
+      summary: 'A personalized itinerary crafted just for you.',
+      totalDays: days.length,
+      days: days,
+    );
+  }
 }

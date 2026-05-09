@@ -1,14 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tunisian_trip_planner/features/ai/cubit/ai_trip_states.dart';
-import 'package:tunisian_trip_planner/features/ai/data/ai_trip_repository.dart';
-import 'package:tunisian_trip_planner/features/ai/models/ai_place.dart';
-import 'package:tunisian_trip_planner/features/ai/models/ai_plan_request.dart';
+import 'package:tunisian_trip_planner/features/ai/models/ai_itinerary.dart';
 import 'package:tunisian_trip_planner/features/places/models/places_category.dart';
-import 'package:tunisian_trip_planner/features/places/data/mock_places_data.dart';
+import 'package:tunisian_trip_planner/features/places/models/places_response.dart';
+import 'package:tunisian_trip_planner/features/places/models/plan_request.dart';
+import 'package:tunisian_trip_planner/shared/network/local/cache_helper.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/end_points.dart';
 
 class AiTripCubit extends Cubit<AiTripStates> {
-  final AiTripRepository _repository = AiTripRepository();
-
   AiTripCubit() : super(AiTripInitial());
 
   static AiTripCubit get(context) => BlocProvider.of(context);
@@ -91,33 +91,62 @@ class AiTripCubit extends Cubit<AiTripStates> {
     emit(AiTripLoading());
 
     try {
-      final matchingPlaces = MockPlacesData.places
-          .where((p) => p.category != null && selectedCategories.contains(p.category))
-          .toList();
+      // 1. Fetch all places to filter them
+      final placesResponse = await DioHelper.getData(url: EndPoints.places);
+      
+      List<PlacesResponse> allPlaces = [];
+      if (placesResponse.data != null && placesResponse.data['content'] != null) {
+        allPlaces = (placesResponse.data['content'] as List)
+            .map((e) => PlacesResponse.fromJson(e))
+            .toList();
+      }
 
-      final request = AiPlanRequest(
-        places: matchingPlaces
-            .map((p) => AiPlace(
-                  id: p.id,
-                  name: p.name,
-                  cityName: p.cityName,
-                  latitude: p.latitude,
-                  longitude: p.longitude,
-                  category: p.category?.name,
-                ))
-            .toList(),
-        user: "CurrentUser", // Replace with actual user ID if available
-        age: age,
-        preferences: selectedPreferences.isNotEmpty ? selectedPreferences : ["General"],
-        budget: budget,
+      // 2. Filter places based on selected preferences (categories)
+      List<PlacesResponse> filteredPlaces = allPlaces;
+      if (selectedCategories.isNotEmpty) {
+        filteredPlaces = allPlaces.where((place) {
+          final placeCategory = place.category?.name.toUpperCase() ?? '';
+          return selectedCategories.map((e) => e.name.toUpperCase()).contains(placeCategory);
+        }).toList();
+      }
+
+      // 3. Construct the PlanRequest payload
+      final requestPayload = PlanRequest(
+        destination: "Tunisia", // Default destination
         tripLength: tripLength,
         groupNumber: groupNumber,
         accommodation: bookAccommodation,
-        transportMean: rentCar,
+        transport: rentCar,
+        budget: budget,
+        age: age,
+        preferences: selectedPreferences.map((e) => e.toLowerCase()).toList(),
+        places: filteredPlaces,
+        reviews: [
+          AiUserReview(
+            placeName: "les jardin de carthage",
+            rating: 4,
+            category: "historic",
+          )
+        ],
       );
 
-      final itinerary = await _repository.generatePlan(request);
-      emit(AiTripSuccess(itinerary));
+      // 4. Send POST request to AI Service via Spring Gateway
+      final response = await DioHelper.postData(
+        url: EndPoints.itinerary,
+        data: requestPayload.toJson(),
+        headers: {
+          'X-User-Email': CacheHelper.getData('email') ?? 'user@test.com',
+        },
+      );
+
+      if (response.data != null) {
+        // Response is a Map<String, String>
+        final rawMap = Map<String, dynamic>.from(response.data);
+        final itinerary = AiItinerary.fromRawMap(rawMap);
+        emit(AiTripSuccess(itinerary));
+      } else {
+        emit(AiTripError("Empty response from AI Service"));
+      }
     } catch (e) {
       emit(AiTripError(e.toString()));
     }

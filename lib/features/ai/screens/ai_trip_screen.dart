@@ -6,7 +6,6 @@ import 'package:tunisian_trip_planner/features/ai/cubit/ai_trip_cubit.dart';
 import 'package:tunisian_trip_planner/features/ai/cubit/ai_trip_states.dart';
 import 'package:tunisian_trip_planner/features/places/models/places_category.dart';
 import 'package:tunisian_trip_planner/features/ai/screens/ai_itinerary_screen.dart';
-import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 
 class AiTripScreen extends StatelessWidget {
   const AiTripScreen({super.key});
@@ -33,8 +32,19 @@ class _AiTripBodyState extends State<_AiTripBody> {
     return BlocConsumer<AiTripCubit, AiTripStates>(
       listener: (context, state) {
         if (state is AiTripSuccess) {
-          navigateAndReplace(
-              context, AiItineraryScreen(itinerary: state.itinerary));
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => SizedBox(
+              height: MediaQuery.of(context).size.height * 0.9,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                child: AiItineraryScreen(itinerary: state.itinerary),
+              ),
+            ),
+          );
         } else if (state is AiTripError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message)),
@@ -225,6 +235,7 @@ class _AiTripBodyState extends State<_AiTripBody> {
       state: cubit.currentStep == 2 ? StepState.editing : StepState.indexed,
       content: Column(
         children: [
+          SizedBox(height: 10,),
           Row(
             children: [
               Expanded(

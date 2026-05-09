@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tunisian_trip_planner/features/auth/login_cubit/login_states.dart';
 import 'package:tunisian_trip_planner/features/auth/models/login_model.dart';
@@ -36,8 +37,8 @@ class LoginCubit extends Cubit<LoginState> {
       loginModel = LoginModel.fromJson(value.data);
       emit(LoginSuccess(loginModel));
     }).catchError((error) {
-      print(error.toString());
-      emit(LoginError(error.toString()));
+      debugPrint('[LoginCubit] userLogin error: $error');
+      emit(LoginError('Something went wrong. Please try again.'));
     });
   }
 }

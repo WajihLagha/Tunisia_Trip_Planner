@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tunisian_trip_planner/features/places/cubit/places_states.dart';
-import 'package:tunisian_trip_planner/features/places/data/mock_places_data.dart';
 import 'package:tunisian_trip_planner/features/places/models/places_category.dart';
 import 'package:tunisian_trip_planner/features/places/models/places_response.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/end_points.dart';
+
 class PlacesCubit extends Cubit<PlacesStates> {
   PlacesCubit() : super(PlacesInitialState());
 
@@ -10,89 +13,146 @@ class PlacesCubit extends Cubit<PlacesStates> {
 
   PlacesCategory? selectedCategory;
   double minRating = 0.0;
-  String _searchQuery = '';
 
   void loadPlaces() async {
     emit(PlacesLoadingState());
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (isClosed) return;
     try {
-      final places = MockPlacesData.places;
+      final response = await DioHelper.getData(url: EndPoints.places);
+      
+      List<dynamic> content = [];
+      if (response.data is List) {
+        content = response.data;
+      } else if (response.data is Map && response.data['content'] != null) {
+        content = response.data['content'] as List;
+      } else {
+        throw Exception('Unexpected response format: ${response.data}');
+      }
+
+      final places = content.map((e) => PlacesResponse.fromJson(e)).toList();
       emit(PlacesLoadedState(
         places: places,
         filteredPlaces: places,
         selectedCategory: null,
         minRating: 0.0,
       ));
-    } catch (e) {
-      emit(PlacesErrorState('Failed to load places'));
+    } catch (e, stack) {
+      debugPrint('[PlacesCubit] loadPlaces error: $e');
+      debugPrint('[PlacesCubit] Stack: $stack');
+      emit(PlacesErrorState('Something went wrong.'));
     }
-  }
-
-  void _applyFilters(List<PlacesResponse> allPlaces) {
-    final results = allPlaces.where((place) {
-      final matchesCategory =
-          selectedCategory == null || place.category == selectedCategory;
-      final matchesRating = (place.rating ?? 0.0) >= minRating;
-      final matchesSearch = _searchQuery.isEmpty ||
-          (place.name?.toLowerCase().contains(_searchQuery.toLowerCase()) ??
-              false) ||
-          (place.cityName
-                  ?.toLowerCase()
-                  .contains(_searchQuery.toLowerCase()) ??
-              false);
-      return matchesCategory && matchesRating && matchesSearch;
-    }).toList();
-
-    emit(PlacesLoadedState(
-      places: allPlaces,
-      filteredPlaces: results,
-      selectedCategory: selectedCategory,
-      minRating: minRating,
-    ));
   }
 
   void filterByCategory(PlacesCategory? category) {
-    if (state is PlacesLoadedState) {
-      selectedCategory = category;
-      _applyFilters((state as PlacesLoadedState).places);
-    }
+    applyFilters(category: category, rating: minRating);
   }
 
   void filterByRating(double rating) {
-    if (state is PlacesLoadedState) {
-      minRating = rating;
-      _applyFilters((state as PlacesLoadedState).places);
-    }
+    applyFilters(category: selectedCategory, rating: rating);
   }
 
-  void applyFilters({PlacesCategory? category, required double rating}) {
-    if (state is PlacesLoadedState) {
-      selectedCategory = category;
-      minRating = rating;
-      _applyFilters((state as PlacesLoadedState).places);
+  void applyFilters({PlacesCategory? category, required double rating}) async {
+    selectedCategory = category;
+    minRating = rating;
+
+    if (category == null) {
+      // The backend /filter requires a category. If none is selected, 
+      // we fetch all and locally filter by rating to avoid backend errors.
+      emit(PlacesLoadingState());
+      try {
+        final response = await DioHelper.getData(url: EndPoints.places);
+        
+        List<dynamic> content = [];
+        if (response.data is List) {
+          content = response.data;
+        } else if (response.data is Map && response.data['content'] != null) {
+          content = response.data['content'] as List;
+        }
+
+        final places = content.map((e) => PlacesResponse.fromJson(e)).toList();
+        
+        final filtered = places.where((p) => (p.rating ?? 0.0) >= rating).toList();
+        
+        emit(PlacesLoadedState(
+          places: places,
+          filteredPlaces: filtered,
+          selectedCategory: null,
+          minRating: rating,
+        ));
+      } catch (e) {
+        debugPrint('[PlacesCubit] applyFilters (no category) error: $e');
+        emit(PlacesErrorState('Something went wrong.'));
+      }
+      return;
+    }
+
+    emit(PlacesLoadingState());
+    try {
+      final response = await DioHelper.getData(
+        url: EndPoints.placesFilter,
+        query: {
+          'category': category.name.toUpperCase(),
+          'rating': rating,
+        },
+      );
+      
+      List<dynamic> content = [];
+      if (response.data is List) {
+        content = response.data;
+      } else if (response.data is Map && response.data['content'] != null) {
+        content = response.data['content'] as List;
+      }
+
+      final filteredPlaces = content.map((e) => PlacesResponse.fromJson(e)).toList();
+
+      emit(PlacesLoadedState(
+        places: filteredPlaces,
+        filteredPlaces: filteredPlaces,
+        selectedCategory: category,
+        minRating: rating,
+      ));
+    } catch (e) {
+      debugPrint('[PlacesCubit] applyFilters error: $e');
+      emit(PlacesErrorState('Something went wrong.'));
     }
   }
 
   void resetFilters() {
     selectedCategory = null;
     minRating = 0.0;
-    _searchQuery = '';
-    if (state is PlacesLoadedState) {
-      final allPlaces = (state as PlacesLoadedState).places;
-      emit(PlacesLoadedState(
-        places: allPlaces,
-        filteredPlaces: allPlaces,
-        selectedCategory: null,
-        minRating: 0.0,
-      ));
-    }
+    loadPlaces();
   }
 
-  void searchPlaces(String query) {
-    if (state is PlacesLoadedState) {
-      _searchQuery = query;
-      _applyFilters((state as PlacesLoadedState).places);
+  void searchPlaces(String query) async {
+    if (query.isEmpty) {
+      resetFilters();
+      return;
+    }
+
+    emit(PlacesLoadingState());
+    try {
+      final response = await DioHelper.getData(
+        url: EndPoints.placesSearch,
+        query: {'searchTerm': query},
+      );
+      
+      List<dynamic> content = [];
+      if (response.data is List) {
+        content = response.data;
+      } else if (response.data is Map && response.data['content'] != null) {
+        content = response.data['content'] as List;
+      }
+
+      final filteredPlaces = content.map((e) => PlacesResponse.fromJson(e)).toList();
+
+      emit(PlacesLoadedState(
+        places: filteredPlaces,
+        filteredPlaces: filteredPlaces,
+        selectedCategory: selectedCategory,
+        minRating: minRating,
+      ));
+    } catch (e) {
+      debugPrint('[PlacesCubit] searchPlaces error: $e');
+      emit(PlacesErrorState('Something went wrong.'));
     }
   }
 }

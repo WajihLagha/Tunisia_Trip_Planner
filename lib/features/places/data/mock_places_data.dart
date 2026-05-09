@@ -106,7 +106,7 @@ class MockPlacesData {
       name: 'Ichkeul National Park',
       cityName: 'Bizerte',
       stateName: 'Bizerte',
-      category: PlacesCategory.nature,
+      category: PlacesCategory.mountain,
       description:
           'A UNESCO World Heritage Site and Biosphere Reserve, Ichkeul is a haven for migratory birds. The lush wetlands, dramatic mountain, and serene lake create a breathtaking natural sanctuary.',
       rating: 4.5,

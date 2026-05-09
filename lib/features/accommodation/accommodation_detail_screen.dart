@@ -7,6 +7,9 @@ import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_cubit
 import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_states.dart';
 import 'package:tunisian_trip_planner/features/accommodation/room_detail_screen.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
+import 'package:tunisian_trip_planner/features/reviews/widgets/reviews_section.dart';
+import 'package:tunisian_trip_planner/features/reviews/models/review_target_type.dart';
+import 'package:tunisian_trip_planner/shared/widgets/place_image_widget.dart';
 
 class AccommodationDetailScreen extends StatelessWidget {
   final AccommodationDto accommodation;
@@ -39,6 +42,18 @@ class AccommodationDetailScreen extends StatelessWidget {
                   _buildAvailableRooms(context, isDark),
                   const SizedBox(height: 32),
                   _buildLocationSection(isDark),
+                  const SizedBox(height: 32),
+                  if (accommodation.id != null)
+                    Transform.translate(
+                      offset: const Offset(-24, 0), // Adjust for the parent padding
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: ReviewsSection(
+                          targetId: accommodation.id.toString(),
+                          targetType: ReviewTargetType.accommodation,
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 100), // padding for bottom bar
                 ],
               ),
@@ -125,13 +140,9 @@ class AccommodationDetailScreen extends StatelessWidget {
                 ? accommodation.images!.first.imageUrl
                 : null;
             final safeUrl = (url != null && url.isNotEmpty) ? url : null;
-            return Image.asset(
-              safeUrl ?? 'assets/images/default_hotel.jpg',
+            return PlaceImageWidget(
+              imageUrl: safeUrl ?? 'assets/images/default_hotel.jpg',
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Image.asset(
-                'assets/images/default_hotel.jpg',
-                fit: BoxFit.cover,
-              ),
             );
           },
         ),
@@ -395,21 +406,16 @@ class AccommodationDetailScreen extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            child: Image.asset(
-              (room.images?.isNotEmpty == true
-                      ? room.images!.first.imageUrl
-                      : null) ??
-                  'assets/images/default_room.jpg',
+            child: SizedBox(
               height: 180,
               width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder:
-                  (context, error, stackTrace) => Image.asset(
+              child: PlaceImageWidget(
+                imageUrl: (room.images?.isNotEmpty == true
+                        ? room.images!.first.imageUrl
+                        : null) ??
                     'assets/images/default_room.jpg',
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           Padding(

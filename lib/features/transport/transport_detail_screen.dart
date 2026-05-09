@@ -5,6 +5,8 @@ import 'package:tunisian_trip_planner/features/transport/car_detail_screen.dart'
 import 'package:tunisian_trip_planner/features/transport/models/transport_model.dart';
 import 'package:tunisian_trip_planner/features/transport/widgets/vehicle_card.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
+import 'package:tunisian_trip_planner/features/reviews/widgets/reviews_section.dart';
+import 'package:tunisian_trip_planner/features/reviews/models/review_target_type.dart';
 
 class TransportDetailScreen extends StatelessWidget {
   final TransportModel transport;
@@ -37,6 +39,11 @@ class TransportDetailScreen extends StatelessWidget {
             // ── Our Fleet Section ────────────────────────
             if (transport.vehicles.isNotEmpty)
               _buildFleetSection(cs, isDark),
+            // ── Reviews ────────────────────────────────────────
+            ReviewsSection(
+              targetId: transport.id.toString(),
+              targetType: ReviewTargetType.transport,
+            ),
 
             const SizedBox(height: 40),
           ],

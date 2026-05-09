@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:tunisian_trip_planner/shared/network/remote/end_points.dart';
 
 class DioHelper {
@@ -31,6 +32,7 @@ class DioHelper {
   static Future<Response> getData({
     required String url,
     Map<String, dynamic>? query,
+    Map<String, dynamic>? headers,
     String lang = 'en',
     String? token,
   }) async {
@@ -39,7 +41,10 @@ class DioHelper {
       'Content-Type': 'application/json',
       'lang': lang,
       if (effectiveToken != null) 'Authorization': 'Bearer $effectiveToken',
+      if (headers != null) ...headers,
     };
+
+    debugPrint('[DioHelper] GET url: $url, token present: ${effectiveToken != null}');
 
     return await dio.get(url, queryParameters: query);
   }
@@ -48,17 +53,23 @@ class DioHelper {
     required String url,
     Map<String, dynamic>? query,
     required dynamic data,
+    Map<String, dynamic>? headers,
     String? token,
     String lang = 'en',
     String contentType = 'application/json',
   }) async {
     final effectiveToken = token ?? _token;
     dio.options.headers = {
-      'Content-Type': contentType,
       'lang': lang,
       if (effectiveToken != null) 'Authorization': 'Bearer $effectiveToken',
+      if (headers != null) ...headers,
     };
-    return await dio.post(url, data: data, queryParameters: query);
+    return await dio.post(
+      url, 
+      data: data, 
+      queryParameters: query,
+      options: Options(contentType: contentType),
+    );
   }
 
   static Future<Response> putData({

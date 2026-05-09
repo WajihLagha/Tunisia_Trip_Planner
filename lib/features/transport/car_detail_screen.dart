@@ -4,6 +4,9 @@ import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 import 'package:tunisian_trip_planner/features/transport/models/vehicle_model.dart';
 import 'package:tunisian_trip_planner/features/transport/rental_confirm_screen.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
+import 'package:tunisian_trip_planner/shared/widgets/place_image_widget.dart';
+import 'package:tunisian_trip_planner/features/reviews/widgets/reviews_section.dart';
+import 'package:tunisian_trip_planner/features/reviews/models/review_target_type.dart';
 
 class CarDetailScreen extends StatelessWidget {
   final VehicleModel vehicle;
@@ -61,6 +64,16 @@ class CarDetailScreen extends StatelessWidget {
                   ],
 
                   const SizedBox(height: 24),
+                  
+                  if (vehicle.id != null)
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: ReviewsSection(
+                        targetId: vehicle.id.toString(),
+                        targetType: ReviewTargetType.transport,
+                      ),
+                    ),
+                  const SizedBox(height: 100), // padding for bottom bar
                 ],
               ),
             ),
@@ -86,8 +99,8 @@ class CarDetailScreen extends StatelessWidget {
           child: Stack(
             children: [
               Positioned.fill(
-                child: Image.asset(
-                  'assets/images/default_transport.png',
+                child: PlaceImageWidget(
+                  imageUrl: vehicle.vehicleImage ?? 'assets/images/default_transport.png',
                   fit: BoxFit.cover,
                 ),
               ),

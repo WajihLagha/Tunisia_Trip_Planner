@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
+import 'package:tunisian_trip_planner/features/accommodation/all_accommodation_screen.dart';
 import 'package:tunisian_trip_planner/features/accommodation/cubit/accommodation_cubit.dart';
 import 'package:tunisian_trip_planner/features/accommodation/cubit/accommodation_states.dart';
 import 'package:tunisian_trip_planner/features/accommodation/enums/accommodation_type.dart';
+import 'package:tunisian_trip_planner/features/accommodation/models/accommodation.dart';
 import 'package:tunisian_trip_planner/features/accommodation/widgets/accommodation_filter_sheet.dart';
 import 'package:tunisian_trip_planner/features/accommodation/widgets/hotel_horizontal_card.dart';
 import 'package:tunisian_trip_planner/features/accommodation/widgets/stacked_room_carousel.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 import 'package:tunisian_trip_planner/features/accommodation/accommodation_detail_screen.dart';
 import 'package:tunisian_trip_planner/features/accommodation/room_detail_screen.dart';
-import 'package:tunisian_trip_planner/features/accommodation/data/mock_accommodation_data.dart';
 
 class AccommodationScreen extends StatelessWidget {
   const AccommodationScreen({super.key});
@@ -96,13 +97,13 @@ class _AccommodationView extends StatelessWidget {
                 const SliverToBoxAdapter(child: SizedBox(height: 16)),
                 SliverToBoxAdapter(
                   child: StackedRoomCarousel(
-                    rooms: cubit.topRooms,
+                    rooms: cubit.getTopRooms(state.accommodations),
                     onRoomTap: (room) {
                       // Find parent accommodation for the tapped room
-                      final parentAccom = MockAccommodationData.accommodations
+                      final parentAccom = state.accommodations
                           .firstWhere(
                             (a) => a.rooms?.any((r) => r.id == room.id) == true,
-                            orElse: () => MockAccommodationData.accommodations.first,
+                            orElse: () => AccommodationDto(),
                           );
                       navigateTo(
                         context,
@@ -195,29 +196,34 @@ class _AccommodationView extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Container(
-              height: 52,
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.surfaceVariantD : Colors.white,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search accommodations...',
-                  hintStyle: GoogleFonts.dmSans(color: AppColors.mutedText),
-                  prefixIcon: const Icon(Icons.search, color: AppColors.mutedText),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+            child: GestureDetector(
+              onTap: () => navigateTo(context, const AllAccommodationScreen()),
+              child: Container(
+                height: 52,
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.surfaceVariantD : Colors.white,
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                style: GoogleFonts.dmSans(
-                  color: isDark ? Colors.white : Colors.black,
+                child: Row(
+                  children: [
+                    const SizedBox(width: 16),
+                    const Icon(Icons.search, color: AppColors.mutedText),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Search accommodations...',
+                      style: GoogleFonts.dmSans(
+                        color: AppColors.mutedText,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

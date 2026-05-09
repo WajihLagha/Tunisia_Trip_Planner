@@ -5,6 +5,7 @@ import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 import 'package:tunisian_trip_planner/features/places/cubit/add_place_cubit.dart';
 import 'package:tunisian_trip_planner/features/places/cubit/add_place_states.dart';
 import 'package:tunisian_trip_planner/features/places/models/places_category.dart';
+import 'package:tunisian_trip_planner/shared/widgets/place_image_widget.dart';
 
 class AddPlaceScreen extends StatelessWidget {
   const AddPlaceScreen({super.key});
@@ -35,7 +36,11 @@ class _AddPlaceViewState extends State<_AddPlaceView> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _priceController = TextEditingController();
-  
+  final _latController = TextEditingController();
+  final _lngController = TextEditingController();
+  final _mainImageController = TextEditingController();
+  final _galleryUrlController = TextEditingController();
+
   PlacesCategory _selectedCategory = PlacesCategory.history;
 
   @override
@@ -48,6 +53,10 @@ class _AddPlaceViewState extends State<_AddPlaceView> {
     _phoneController.dispose();
     _emailController.dispose();
     _priceController.dispose();
+    _latController.dispose();
+    _lngController.dispose();
+    _mainImageController.dispose();
+    _galleryUrlController.dispose();
     super.dispose();
   }
 
@@ -61,17 +70,28 @@ class _AddPlaceViewState extends State<_AddPlaceView> {
       listener: (context, state) {
         if (state is AddPlaceSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Place added successfully!')),
+            SnackBar(
+              content: const Text('Place added successfully! 🎉'),
+              backgroundColor: AppColors.primary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
           );
           Navigator.pop(context);
         } else if (state is AddPlaceError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.errorColor,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
           );
         }
       },
       builder: (context, state) {
         final cubit = AddPlaceCubit.get(context);
+        final isLoading = state is AddPlaceLoading;
 
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
@@ -95,92 +115,154 @@ class _AddPlaceViewState extends State<_AddPlaceView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _SectionTitle(title: 'Main Photo (Required)'),
+
+                  // ── Main Image URL ────────────────────────────────
+                  _SectionTitle(title: 'Main Photo URL (Required)'),
                   const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () => cubit.pickMainImage(),
-                    child: Container(
+                  _CustomTextField(
+                    controller: _mainImageController,
+                    label: 'Main Image URL',
+                    icon: Icons.link_rounded,
+                    keyboardType: TextInputType.url,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    onChanged: (val) => cubit.setMainImageUrl(val),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Live preview of main image
+                  if (cubit.mainImageUrl.isNotEmpty)
+                    Container(
                       height: 180,
+                      width: double.infinity,
+                      clipBehavior: Clip.hardEdge,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: isDark ? AppColors.surfaceVariantD : cs.surfaceContainerHighest,
+                      ),
+                      child: PlaceImageWidget(
+                        imageUrl: cubit.mainImageUrl,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  else
+                    Container(
+                      height: 120,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         color: isDark ? AppColors.surfaceVariantD : cs.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(16),
-                        border: cubit.mainImage == null
-                            ? Border.all(color: cs.outline.withValues(alpha: 0.3), style: BorderStyle.solid)
-                            : null,
+                        border: Border.all(color: cs.outline.withValues(alpha: 0.2)),
                       ),
-                      child: cubit.mainImage != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.file(cubit.mainImage!, fit: BoxFit.cover),
-                            )
-                          : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add_photo_alternate_rounded, size: 40, color: cs.primary),
-                                const SizedBox(height: 8),
-                                Text('Tap to upload main photo', style: TextStyle(color: cs.onSurfaceVariant)),
-                              ],
-                            ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.image_outlined, size: 36, color: cs.onSurfaceVariant.withValues(alpha: 0.5)),
+                          const SizedBox(height: 8),
+                          Text('Enter a URL above to preview the image',
+                              style: GoogleFonts.dmSans(color: cs.onSurfaceVariant.withValues(alpha: 0.6), fontSize: 13)),
+                        ],
+                      ),
                     ),
-                  ),
 
+                  // ── Gallery Images ────────────────────────────────
                   const SizedBox(height: 24),
                   _SectionTitle(title: 'Gallery Photos (Optional)'),
                   const SizedBox(height: 12),
-                  SizedBox(
-                    height: 100,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: cubit.galleryImages.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index == cubit.galleryImages.length) {
-                          return GestureDetector(
-                            onTap: () => cubit.pickGalleryImages(),
-                            child: Container(
-                              width: 100,
-                              margin: const EdgeInsets.only(right: 12),
-                              decoration: BoxDecoration(
-                                color: isDark ? AppColors.surfaceVariantD : cs.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Center(
-                                child: Icon(Icons.add_rounded, color: cs.primary, size: 32),
-                              ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _galleryUrlController,
+                          keyboardType: TextInputType.url,
+                          style: TextStyle(color: cs.onSurface),
+                          decoration: InputDecoration(
+                            labelText: 'Gallery Image URL',
+                            prefixIcon: Icon(Icons.add_photo_alternate_rounded, color: cs.primary),
+                            filled: true,
+                            fillColor: isDark ? AppColors.surfaceVariantD : cs.surfaceContainerHighest,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
                             ),
-                          );
-                        }
-                        return Stack(
-                          children: [
-                            Container(
-                              width: 100,
-                              margin: const EdgeInsets.only(right: 12),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.file(cubit.galleryImages[index], fit: BoxFit.cover),
-                              ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
                             ),
-                            Positioned(
-                              top: 4,
-                              right: 16,
-                              child: GestureDetector(
-                                onTap: () => cubit.removeGalleryImage(index),
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.black54,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.close_rounded, size: 14, color: Colors.white),
-                                ),
-                              ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: cs.primary, width: 2),
                             ),
-                          ],
-                        );
-                      },
-                    ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () {
+                          final url = _galleryUrlController.text.trim();
+                          if (url.isNotEmpty) {
+                            cubit.addGalleryImageUrl(url);
+                            _galleryUrlController.clear();
+                          }
+                        },
+                        child: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: cs.primary,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+                        ),
+                      ),
+                    ],
                   ),
 
+                  if (cubit.galleryImageUrls.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 100,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: cubit.galleryImageUrls.length,
+                        itemBuilder: (context, index) {
+                          return Stack(
+                            children: [
+                              Container(
+                                width: 100,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: cs.surfaceContainerHighest,
+                                ),
+                                clipBehavior: Clip.hardEdge,
+                                child: PlaceImageWidget(
+                                  imageUrl: cubit.galleryImageUrls[index],
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 4,
+                                right: 16,
+                                child: GestureDetector(
+                                  onTap: () => cubit.removeGalleryImage(index),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.black54,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.close_rounded, size: 14, color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+
+                  // ── Basic Details ─────────────────────────────────
                   const SizedBox(height: 24),
                   _SectionTitle(title: 'Basic Details'),
                   const SizedBox(height: 12),
@@ -188,7 +270,7 @@ class _AddPlaceViewState extends State<_AddPlaceView> {
                     controller: _nameController,
                     label: 'Place Name',
                     icon: Icons.place_rounded,
-                    validator: (v) => v!.isEmpty ? 'Required' : null,
+                    validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                   ),
                   const SizedBox(height: 16),
                   _CustomTextField(
@@ -196,9 +278,10 @@ class _AddPlaceViewState extends State<_AddPlaceView> {
                     label: 'Description',
                     icon: Icons.description_rounded,
                     maxLines: 4,
-                    validator: (v) => v!.isEmpty ? 'Required' : null,
+                    validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                   ),
 
+                  // ── Category ──────────────────────────────────────
                   const SizedBox(height: 24),
                   _SectionTitle(title: 'Category'),
                   const SizedBox(height: 12),
@@ -216,7 +299,10 @@ class _AddPlaceViewState extends State<_AddPlaceView> {
                         items: PlacesCategory.values.map((cat) {
                           return DropdownMenuItem(
                             value: cat,
-                            child: Text(cat.name.toUpperCase()),
+                            child: Text(
+                              cat.name.toUpperCase(),
+                              style: TextStyle(color: cs.onSurface),
+                            ),
                           );
                         }).toList(),
                         onChanged: (val) {
@@ -228,6 +314,7 @@ class _AddPlaceViewState extends State<_AddPlaceView> {
                     ),
                   ),
 
+                  // ── Location ──────────────────────────────────────
                   const SizedBox(height: 24),
                   _SectionTitle(title: 'Location Details'),
                   const SizedBox(height: 12),
@@ -238,16 +325,16 @@ class _AddPlaceViewState extends State<_AddPlaceView> {
                           controller: _cityController,
                           label: 'City',
                           icon: Icons.location_city_rounded,
-                          validator: (v) => v!.isEmpty ? 'Required' : null,
+                          validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: _CustomTextField(
                           controller: _stateController,
-                          label: 'State',
+                          label: 'State / Governorate',
                           icon: Icons.map_rounded,
-                          validator: (v) => v!.isEmpty ? 'Required' : null,
+                          validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                         ),
                       ),
                     ],
@@ -257,9 +344,34 @@ class _AddPlaceViewState extends State<_AddPlaceView> {
                     controller: _addressController,
                     label: 'Full Address',
                     icon: Icons.home_rounded,
-                    validator: (v) => v!.isEmpty ? 'Required' : null,
+                    validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _CustomTextField(
+                          controller: _latController,
+                          label: 'Latitude',
+                          icon: Icons.my_location_rounded,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                          validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _CustomTextField(
+                          controller: _lngController,
+                          label: 'Longitude',
+                          icon: Icons.my_location_rounded,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                          validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                        ),
+                      ),
+                    ],
                   ),
 
+                  // ── Contact & Pricing ─────────────────────────────
                   const SizedBox(height: 24),
                   _SectionTitle(title: 'Contact & Pricing'),
                   const SizedBox(height: 12),
@@ -279,11 +391,12 @@ class _AddPlaceViewState extends State<_AddPlaceView> {
                   const SizedBox(height: 16),
                   _CustomTextField(
                     controller: _priceController,
-                    label: 'Average Price (\$)',
+                    label: 'Average Price (TND)',
                     icon: Icons.attach_money_rounded,
                     keyboardType: TextInputType.number,
                   ),
 
+                  // ── Submit ────────────────────────────────────────
                   const SizedBox(height: 40),
                   SizedBox(
                     width: double.infinity,
@@ -295,25 +408,31 @@ class _AddPlaceViewState extends State<_AddPlaceView> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         elevation: 0,
                       ),
-                      onPressed: state is AddPlaceLoading
+                      onPressed: isLoading
                           ? null
                           : () {
                               if (_formKey.currentState!.validate()) {
                                 cubit.submitPlace(
-                                  name: _nameController.text,
-                                  description: _descController.text,
-                                  cityName: _cityController.text,
-                                  stateName: _stateController.text,
-                                  address: _addressController.text,
-                                  phoneNumber: _phoneController.text,
-                                  email: _emailController.text,
+                                  name: _nameController.text.trim(),
+                                  description: _descController.text.trim(),
+                                  cityName: _cityController.text.trim(),
+                                  stateName: _stateController.text.trim(),
+                                  address: _addressController.text.trim(),
+                                  phoneNumber: _phoneController.text.trim(),
+                                  email: _emailController.text.trim(),
                                   averagePrice: double.tryParse(_priceController.text) ?? 0.0,
+                                  latitude: double.tryParse(_latController.text) ?? 0.0,
+                                  longitude: double.tryParse(_lngController.text) ?? 0.0,
                                   category: _selectedCategory,
                                 );
                               }
                             },
-                      child: state is AddPlaceLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                            )
                           : Text(
                               'Add Place',
                               style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.bold),
@@ -331,6 +450,7 @@ class _AddPlaceViewState extends State<_AddPlaceView> {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
 class _SectionTitle extends StatelessWidget {
   final String title;
   const _SectionTitle({required this.title});
@@ -339,13 +459,12 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
     );
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
 class _CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
@@ -353,6 +472,7 @@ class _CustomTextField extends StatelessWidget {
   final int maxLines;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
+  final ValueChanged<String>? onChanged;
 
   const _CustomTextField({
     required this.controller,
@@ -361,6 +481,7 @@ class _CustomTextField extends StatelessWidget {
     this.maxLines = 1,
     this.keyboardType = TextInputType.text,
     this.validator,
+    this.onChanged,
   });
 
   @override
@@ -373,28 +494,18 @@ class _CustomTextField extends StatelessWidget {
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
+      onChanged: onChanged,
       style: TextStyle(color: cs.onSurface),
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: cs.primary),
         filled: true,
         fillColor: isDark ? AppColors.surfaceVariantD : cs.surfaceContainerHighest,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: cs.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red, width: 1),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: cs.primary, width: 2)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.red, width: 1)),
+        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.red, width: 2)),
       ),
     );
   }

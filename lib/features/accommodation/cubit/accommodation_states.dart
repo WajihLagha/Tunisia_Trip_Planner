@@ -6,6 +6,8 @@ class AccommodationInitialState extends AccommodationStates {}
 
 class AccommodationLoadingState extends AccommodationStates {}
 
+class AccommodationSearchingState extends AccommodationStates {}
+
 class AccommodationLoadedState extends AccommodationStates {
   final List<AccommodationDto> accommodations;
   final List<AccommodationDto> filteredAccommodations;
@@ -14,6 +16,12 @@ class AccommodationLoadedState extends AccommodationStates {
     required this.accommodations,
     required this.filteredAccommodations,
   });
+}
+
+class AccommodationSearchLoadedState extends AccommodationStates {
+  final List<AccommodationDto> filteredAccommodations;
+
+  AccommodationSearchLoadedState({required this.filteredAccommodations});
 }
 
 class AccommodationErrorState extends AccommodationStates {

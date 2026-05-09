@@ -24,17 +24,17 @@ class LoginScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => LoginCubit(),
       child: BlocConsumer<LoginCubit, LoginState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is LoginSuccess) {
             if (state.loginModel.accessToken != null) {
               final token = state.loginModel.accessToken!;
-              CacheHelper.putData(
+              await CacheHelper.putData(
                 key: 'token',
                 value: token,
-              ).then((_) {
-                DioHelper.setToken(token);
-                navigateAndRemoveAll(context, const HomeLayout());
-              });
+              );
+              DioHelper.setToken(token);
+              if (!context.mounted) return;
+              navigateAndRemoveAll(context, const HomeLayout());
             }
           }
           if (state is LoginError) {
