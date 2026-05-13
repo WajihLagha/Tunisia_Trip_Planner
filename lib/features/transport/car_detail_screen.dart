@@ -175,7 +175,7 @@ class CarDetailScreen extends StatelessWidget {
 
   // ── Availability Badge ──────────────────────────────────
   Widget _buildAvailabilityBadge(ColorScheme cs) {
-    final available = vehicle.isAvailable;
+    final available = vehicle.quantity > 0;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
@@ -218,8 +218,8 @@ class CarDetailScreen extends StatelessWidget {
   String _generateDescription() {
     final model = vehicle.vehicleModel;
     final type = vehicle.vehicleType.toLowerCase();
-    final fuel = vehicle.fuelTypeLabel.toLowerCase();
-    final capacity = vehicle.vehicleCapacity ?? 5;
+    final fuel = vehicle.fuelType.name.toLowerCase();
+    final capacity = vehicle.vehicleCapacity;
     final color = vehicle.vehicleColor ?? 'classic';
 
     return 'Experience the perfect blend of rugged capability and refined luxury. '
@@ -236,12 +236,12 @@ class CarDetailScreen extends StatelessWidget {
       _SpecItem(
         icon: Icons.people_outline_rounded,
         label: 'CAPACITY',
-        value: '${vehicle.vehicleCapacity ?? '—'} Seats',
+        value: '${vehicle.vehicleCapacity} Seats',
       ),
       _SpecItem(
         icon: Icons.local_gas_station_outlined,
         label: 'FUEL',
-        value: vehicle.fuelTypeLabel,
+        value: vehicle.fuelType.name.toUpperCase(),
       ),
       _SpecItem(
         icon: Icons.palette_outlined,
@@ -261,7 +261,7 @@ class CarDetailScreen extends StatelessWidget {
       _SpecItem(
         icon: Icons.inventory_2_outlined,
         label: 'IN STOCK',
-        value: '${vehicle.quantity ?? '—'} units',
+        value: '${vehicle.quantity} units',
       ),
     ];
 
@@ -300,37 +300,40 @@ class CarDetailScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            spec.icon,
-            size: 28,
-            color: cs.primary.withValues(alpha: 0.6),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            spec.label,
-            style: GoogleFonts.dmSans(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mutedText,
-              letterSpacing: 0.8,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              spec.icon,
+              size: 28,
+              color: cs.primary.withValues(alpha: 0.6),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            spec.value,
-            style: GoogleFonts.dmSans(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: cs.onSurface,
+            const SizedBox(height: 8),
+            Text(
+              spec.label,
+              style: GoogleFonts.dmSans(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: AppColors.mutedText,
+                letterSpacing: 0.8,
+              ),
             ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              spec.value,
+              style: GoogleFonts.dmSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: cs.onSurface,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -435,7 +438,7 @@ class CarDetailScreen extends StatelessWidget {
                     text: TextSpan(
                       children: [
                         TextSpan(
-                          text: '\$${vehicle.vehiclePrice?.toInt() ?? 0}',
+                          text: '\$${vehicle.vehiclePrice.toInt()}',
                           style: GoogleFonts.dmSans(
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
@@ -458,7 +461,7 @@ class CarDetailScreen extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             ElevatedButton(
-              onPressed: vehicle.isAvailable
+              onPressed: vehicle.quantity > 0
                   ? () {
                       navigateTo(
                         context,

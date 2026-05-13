@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 import 'package:tunisian_trip_planner/features/transport/car_detail_screen.dart';
+import 'package:tunisian_trip_planner/features/transport/all_fleet_screen.dart';
 import 'package:tunisian_trip_planner/features/transport/models/transport_model.dart';
 import 'package:tunisian_trip_planner/features/transport/widgets/vehicle_card.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 import 'package:tunisian_trip_planner/features/reviews/widgets/reviews_section.dart';
 import 'package:tunisian_trip_planner/features/reviews/models/review_target_type.dart';
+import 'package:tunisian_trip_planner/shared/widgets/place_image_widget.dart';
 
 class TransportDetailScreen extends StatelessWidget {
   final TransportModel transport;
@@ -38,7 +41,7 @@ class TransportDetailScreen extends StatelessWidget {
 
             // ── Our Fleet Section ────────────────────────
             if (transport.vehicles.isNotEmpty)
-              _buildFleetSection(cs, isDark),
+              _buildFleetSection(context, cs, isDark),
             // ── Reviews ────────────────────────────────────────
             ReviewsSection(
               targetId: transport.id.toString(),
@@ -58,16 +61,15 @@ class TransportDetailScreen extends StatelessWidget {
     return Stack(
       children: [
         // Background image
-        Container(
+        SizedBox(
           height: 280,
           width: double.infinity,
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/images/default_transport.png'),
-              fit: BoxFit.cover,
-            ),
+          child: PlaceImageWidget(
+            imageUrl: transport.imageUrl ?? 'assets/images/default_transport.png',
+            fit: BoxFit.cover,
           ),
-          child: Container(
+        ),
+        Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -80,8 +82,6 @@ class TransportDetailScreen extends StatelessWidget {
               ),
             ),
           ),
-        ),
-
         // Agency name overlay on image
         Positioned(
           bottom: 60,
@@ -175,7 +175,7 @@ class TransportDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  transport.rating.toString(),
+                  transport.averageRating.toString(),
                   style: GoogleFonts.dmSans(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -184,7 +184,7 @@ class TransportDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  '(${transport.reviewCount} reviews)',
+                  '(${transport.totalReviews} reviews)',
                   style: GoogleFonts.dmSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
@@ -196,7 +196,7 @@ class TransportDetailScreen extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Verified Partner badge
-            if (transport.isVerifiedPartner)
+            if (transport.stripeOnboarded)
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -217,43 +217,40 @@ class TransportDetailScreen extends StatelessWidget {
                 ),
               ),
 
-            if (transport.isVerifiedPartner) const SizedBox(height: 16),
+            if (transport.stripeOnboarded) const SizedBox(height: 16),
 
             // Contact buttons row
-            Row(
+            // Contact info rows
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Phone
-                _buildContactButton(
-                  icon: Icons.phone_outlined,
-                  label: 'PHONE',
-                  cs: cs,
-                  isDark: isDark,
-                  onTap: () {
-                    // TODO: Launch phone dialer
-                  },
-                ),
-                const SizedBox(width: 12),
-                // Email
-                _buildContactButton(
-                  icon: Icons.email_outlined,
-                  label: 'EMAIL',
-                  cs: cs,
-                  isDark: isDark,
-                  onTap: () {
-                    // TODO: Launch email client
-                  },
-                ),
-                const SizedBox(width: 12),
-                // Map
-                _buildContactButton(
-                  icon: Icons.map_outlined,
-                  label: 'MAP',
-                  cs: cs,
-                  isDark: isDark,
-                  onTap: () {
-                    // TODO: Open map
-                  },
-                ),
+                if (transport.contactPhone != null && transport.contactPhone!.isNotEmpty)
+                  _buildContactRow(
+                    context: context,
+                    icon: Icons.phone_outlined,
+                    label: 'PHONE',
+                    value: transport.contactPhone!,
+                    cs: cs,
+                    isDark: isDark,
+                  ),
+                if (transport.contactEmail != null && transport.contactEmail!.isNotEmpty)
+                  _buildContactRow(
+                    context: context,
+                    icon: Icons.email_outlined,
+                    label: 'EMAIL',
+                    value: transport.contactEmail!,
+                    cs: cs,
+                    isDark: isDark,
+                  ),
+                if (transport.address != null && transport.address!.isNotEmpty)
+                  _buildContactRow(
+                    context: context,
+                    icon: Icons.location_on_outlined,
+                    label: 'ADDRESS',
+                    value: transport.address!,
+                    cs: cs,
+                    isDark: isDark,
+                  ),
               ],
             ),
           ],
@@ -262,49 +259,80 @@ class TransportDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContactButton({
+  Widget _buildContactRow({
+    required BuildContext context,
     required IconData icon,
     required String label,
+    required String value,
     required ColorScheme cs,
     required bool isDark,
-    required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.green900.withValues(alpha: 0.5)
-                  : AppColors.surfaceVariantL,
-              shape: BoxShape.circle,
-              border: Border.all(
+    return InkWell(
+      onTap: () {
+        Clipboard.setData(ClipboardData(text: value));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$label copied to clipboard'),
+            duration: const Duration(seconds: 2),
+            backgroundColor: cs.primary,
+          ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
                 color: isDark
-                    ? AppColors.green800.withValues(alpha: 0.5)
-                    : AppColors.borderColor,
-                width: 1,
+                    ? AppColors.green900.withValues(alpha: 0.5)
+                    : AppColors.surfaceVariantL,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark
+                      ? AppColors.green800.withValues(alpha: 0.5)
+                      : AppColors.borderColor,
+                  width: 1,
+                ),
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: cs.primary,
               ),
             ),
-            child: Icon(
-              icon,
-              size: 22,
-              color: cs.primary,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mutedText,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  Text(
+                    value,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: cs.onSurface,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: GoogleFonts.dmSans(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: cs.primary,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
+            Icon(Icons.copy_rounded, size: 16, color: AppColors.mutedText),
+          ],
+        ),
       ),
     );
   }
@@ -343,7 +371,7 @@ class TransportDetailScreen extends StatelessWidget {
   }
 
   // ── Fleet Section ────────────────────────────────────────
-  Widget _buildFleetSection(ColorScheme cs, bool isDark) {
+  Widget _buildFleetSection(BuildContext context, ColorScheme cs, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -364,7 +392,7 @@ class TransportDetailScreen extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  // TODO: Navigate to full fleet list
+                  navigateTo(context, AllFleetScreen(transport: transport));
                 },
                 child: Row(
                   children: [

@@ -6,6 +6,7 @@ import 'package:tunisian_trip_planner/features/profile/cubit/profile_cubit.dart'
 import 'package:tunisian_trip_planner/features/profile/cubit/profile_states.dart';
 import 'package:tunisian_trip_planner/features/favourite_screen.dart';
 import 'package:tunisian_trip_planner/features/auth/widgets/login_screen.dart';
+import 'package:tunisian_trip_planner/features/my_bookings_screen.dart';
 import 'package:tunisian_trip_planner/shared/network/local/cache_helper.dart';
 import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
@@ -74,7 +75,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _buildMenuItem(
                         icon: Icons.calendar_today_outlined,
                         title: 'My Bookings',
-                        onTap: () {},
+                        onTap: () => navigateTo(context, const MyBookingScreen()),
                         cs: cs,
                         isDark: isDark,
                       ),

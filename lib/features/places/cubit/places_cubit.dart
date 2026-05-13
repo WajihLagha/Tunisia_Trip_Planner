@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tunisian_trip_planner/features/places/cubit/places_states.dart';
+import 'package:tunisian_trip_planner/features/places/data/mock_places_data.dart';
 import 'package:tunisian_trip_planner/features/places/models/places_category.dart';
 import 'package:tunisian_trip_planner/features/places/models/places_response.dart';
 import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
@@ -38,7 +39,7 @@ class PlacesCubit extends Cubit<PlacesStates> {
     } catch (e, stack) {
       debugPrint('[PlacesCubit] loadPlaces error: $e');
       debugPrint('[PlacesCubit] Stack: $stack');
-      emit(PlacesErrorState('Something went wrong.'));
+      _emitMockPlaces();
     }
   }
 
@@ -80,7 +81,7 @@ class PlacesCubit extends Cubit<PlacesStates> {
         ));
       } catch (e) {
         debugPrint('[PlacesCubit] applyFilters (no category) error: $e');
-        emit(PlacesErrorState('Something went wrong.'));
+        _emitMockPlaces(rating: rating);
       }
       return;
     }
@@ -112,7 +113,7 @@ class PlacesCubit extends Cubit<PlacesStates> {
       ));
     } catch (e) {
       debugPrint('[PlacesCubit] applyFilters error: $e');
-      emit(PlacesErrorState('Something went wrong.'));
+      _emitMockPlaces(category: category, rating: rating);
     }
   }
 
@@ -152,7 +153,41 @@ class PlacesCubit extends Cubit<PlacesStates> {
       ));
     } catch (e) {
       debugPrint('[PlacesCubit] searchPlaces error: $e');
-      emit(PlacesErrorState('Something went wrong.'));
+      final queryLower = query.trim().toLowerCase();
+      final filteredPlaces = MockPlacesData.places.where((place) {
+        return [
+          place.name,
+          place.cityName,
+          place.stateName,
+          place.address,
+          place.description,
+        ].whereType<String>().any(
+              (value) => value.toLowerCase().contains(queryLower),
+            );
+      }).toList();
+
+      emit(PlacesLoadedState(
+        places: MockPlacesData.places,
+        filteredPlaces: filteredPlaces,
+        selectedCategory: selectedCategory,
+        minRating: minRating,
+      ));
     }
+  }
+
+  void _emitMockPlaces({PlacesCategory? category, double rating = 0.0}) {
+    final places = MockPlacesData.places;
+    final filteredPlaces = places.where((place) {
+      final matchesCategory = category == null || place.category == category;
+      final matchesRating = (place.rating ?? 0.0) >= rating;
+      return matchesCategory && matchesRating;
+    }).toList();
+
+    emit(PlacesLoadedState(
+      places: places,
+      filteredPlaces: filteredPlaces,
+      selectedCategory: category,
+      minRating: rating,
+    ));
   }
 }

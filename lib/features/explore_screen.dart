@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
+import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_cubit.dart';
+import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_states.dart';
 import 'package:tunisian_trip_planner/features/my_bookings_screen.dart';
 import 'package:tunisian_trip_planner/features/favourite_screen.dart';
 import 'package:tunisian_trip_planner/features/places/cubit/places_cubit.dart';
@@ -62,13 +64,14 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
       context: ctx,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(
-        value: PlacesCubit.get(ctx),
-        child: PlacesFilterBottomSheet(
-          initialCategory: state.selectedCategory,
-          initialMinRating: state.minRating,
-        ),
-      ),
+      builder:
+          (_) => BlocProvider.value(
+            value: PlacesCubit.get(ctx),
+            child: PlacesFilterBottomSheet(
+              initialCategory: state.selectedCategory,
+              initialMinRating: state.minRating,
+            ),
+          ),
     );
   }
 
@@ -111,16 +114,20 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                     child: Row(
                       children: [
                         IconButton(
-                          icon: Icon(Icons.favorite_rounded,
-                              color: isDark ? Colors.white : AppColors.green950),
-                          onPressed: () => navigateTo(
-                              ctx, const FavouriteScreen()),
+                          icon: Icon(
+                            Icons.favorite_rounded,
+                            color: isDark ? Colors.white : AppColors.green950,
+                          ),
+                          onPressed:
+                              () => navigateTo(ctx, const FavouriteScreen()),
                         ),
                         IconButton(
-                          icon: Icon(Icons.bookmark_rounded,
-                              color: isDark ? Colors.white : AppColors.green950),
-                          onPressed: () => navigateTo(
-                              ctx, const MyBookingScreen()),
+                          icon: Icon(
+                            Icons.bookmark_rounded,
+                            color: isDark ? Colors.white : AppColors.green950,
+                          ),
+                          onPressed:
+                              () => navigateTo(ctx, const MyBookingScreen()),
                         ),
                       ],
                     ),
@@ -130,10 +137,10 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                   collapseMode: CollapseMode.parallax,
                   background: _HeroHeader(
                     isDark: isDark,
-                    onFavouritesTap: () =>
-                        navigateTo(ctx, const FavouriteScreen()),
-                    onBookingsTap: () =>
-                        navigateTo(ctx, const MyBookingScreen()),
+                    onFavouritesTap:
+                        () => navigateTo(ctx, const FavouriteScreen()),
+                    onBookingsTap:
+                        () => navigateTo(ctx, const MyBookingScreen()),
                   ),
                 ),
               ),
@@ -145,15 +152,13 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: _SearchBar(
-                          isDark: isDark,
-                          colorScheme: cs,
-                        ),
+                        child: _SearchBar(isDark: isDark, colorScheme: cs),
                       ),
                       const SizedBox(width: 12),
                       if (state is PlacesLoadedState)
                         _FilterBadge(
-                          hasActiveFilter: state.selectedCategory != null ||
+                          hasActiveFilter:
+                              state.selectedCategory != null ||
                               state.minRating > 0,
                           onTap: () => _showFilters(ctx, state),
                           colorScheme: cs,
@@ -162,7 +167,6 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                   ),
                 ),
               ),
-
 
               // ── Category Chips ────────────────────────────────
               SliverToBoxAdapter(
@@ -173,24 +177,24 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
               if (state is PlacesLoadedState)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding:
-                        const EdgeInsets.fromLTRB(20, 24, 20, 12),
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
                     child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           state.selectedCategory != null
                               ? _categoryLabel(state.selectedCategory!)
                               : 'Tunisian Gems',
-                          style: theme.textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         Text(
                           '${state.filteredPlaces.length} Places',
                           style: theme.textTheme.bodySmall?.copyWith(
-                              color: cs.primary,
-                              fontWeight: FontWeight.w600),
+                            color: cs.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
@@ -198,8 +202,7 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                 ),
 
               // ── Loading ───────────────────────────────────────
-              if (state is PlacesLoadingState ||
-                  state is PlacesInitialState)
+              if (state is PlacesLoadingState || state is PlacesInitialState)
                 const SliverFillRemaining(
                   child: Center(child: CircularProgressIndicator()),
                 ),
@@ -211,8 +214,11 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.error_outline,
-                            size: 48, color: AppColors.errorColor),
+                        const Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: AppColors.errorColor,
+                        ),
                         const SizedBox(height: 12),
                         Text(state.message),
                       ],
@@ -221,25 +227,27 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                 ),
 
               // ── Empty State ───────────────────────────────────
-              if (state is PlacesLoadedState &&
-                  state.filteredPlaces.isEmpty)
+              if (state is PlacesLoadedState && state.filteredPlaces.isEmpty)
                 SliverFillRemaining(
                   child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.search_off_rounded,
-                            size: 64,
-                            color: cs.onSurface.withValues(alpha: 0.3)),
+                        Icon(
+                          Icons.search_off_rounded,
+                          size: 64,
+                          color: cs.onSurface.withValues(alpha: 0.3),
+                        ),
                         const SizedBox(height: 16),
-                        Text('No places found',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                                color: cs.onSurface
-                                    .withValues(alpha: 0.5))),
+                        Text(
+                          'No places found',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: cs.onSurface.withValues(alpha: 0.5),
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         TextButton(
-                          onPressed: () =>
-                              PlacesCubit.get(ctx).resetFilters(),
+                          onPressed: () => PlacesCubit.get(ctx).resetFilters(),
                           child: const Text('Reset Filters'),
                         ),
                       ],
@@ -248,31 +256,29 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
                 ),
 
               // ── Places Grid ───────────────────────────────────
-              if (state is PlacesLoadedState &&
-                  state.filteredPlaces.isNotEmpty)
+              if (state is PlacesLoadedState && state.filteredPlaces.isNotEmpty)
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 4),
+                    horizontal: 20,
+                    vertical: 4,
+                  ),
                   sliver: SliverGrid(
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: 0.68,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final place = state.filteredPlaces[index];
-                        return _PlaceCard(
-                          place: place,
-                          index: index,
-                          isDark: isDark,
-                          theme: theme,
-                        );
-                      },
-                      childCount: state.filteredPlaces.length,
-                    ),
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          childAspectRatio: 0.68,
+                        ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final place = state.filteredPlaces[index];
+                      return _PlaceCard(
+                        place: place,
+                        index: index,
+                        isDark: isDark,
+                        theme: theme,
+                      );
+                    }, childCount: state.filteredPlaces.length),
                   ),
                 ),
 
@@ -286,22 +292,38 @@ class _ExploreScreenViewState extends State<_ExploreScreenView> {
 
   String _categoryLabel(PlacesCategory cat) {
     switch (cat) {
-      case PlacesCategory.history:    return 'Historical Sites';
-      case PlacesCategory.culture:    return 'Cultural Spots';
-      case PlacesCategory.nature:     return 'Nature Escapes';
-      case PlacesCategory.beach:      return 'Beach Paradises';
-      case PlacesCategory.desert:     return 'Desert Adventures';
-      case PlacesCategory.mountain:   return 'Mountain Peaks';
-      case PlacesCategory.adventure:  return 'Adventure Zones';
-      case PlacesCategory.restaurant: return 'Restaurants';
-      case PlacesCategory.museum:     return 'Museums';
-      case PlacesCategory.park:       return 'Parks';
-      case PlacesCategory.shopping:   return 'Shopping';
-      case PlacesCategory.nightlife:  return 'Nightlife';
-      case PlacesCategory.religious:  return 'Religious Sites';
-      case PlacesCategory.entertainment: return 'Entertainment';
-      case PlacesCategory.island:     return 'Islands';
-      case PlacesCategory.company:    return 'Companies';
+      case PlacesCategory.history:
+        return 'Historical Sites';
+      case PlacesCategory.culture:
+        return 'Cultural Spots';
+      case PlacesCategory.nature:
+        return 'Nature Escapes';
+      case PlacesCategory.beach:
+        return 'Beach Paradises';
+      case PlacesCategory.desert:
+        return 'Desert Adventures';
+      case PlacesCategory.mountain:
+        return 'Mountain Peaks';
+      case PlacesCategory.adventure:
+        return 'Adventure Zones';
+      case PlacesCategory.restaurant:
+        return 'Restaurants';
+      case PlacesCategory.museum:
+        return 'Museums';
+      case PlacesCategory.park:
+        return 'Parks';
+      case PlacesCategory.shopping:
+        return 'Shopping';
+      case PlacesCategory.nightlife:
+        return 'Nightlife';
+      case PlacesCategory.religious:
+        return 'Religious Sites';
+      case PlacesCategory.entertainment:
+        return 'Entertainment';
+      case PlacesCategory.island:
+        return 'Islands';
+      case PlacesCategory.company:
+        return 'Companies';
     }
   }
 }
@@ -328,9 +350,10 @@ class _HeroHeader extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark
-              ? [AppColors.green950, AppColors.surfaceDark]
-              : [AppColors.green700, AppColors.green500],
+          colors:
+              isDark
+                  ? [AppColors.green950, AppColors.surfaceDark]
+                  : [AppColors.green700, AppColors.green500],
         ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(24),
@@ -482,9 +505,7 @@ class _SearchBar extends StatelessWidget {
   final bool isDark;
   final ColorScheme colorScheme;
 
-  const _SearchBar(
-      {required this.isDark,
-      required this.colorScheme});
+  const _SearchBar({required this.isDark, required this.colorScheme});
 
   @override
   Widget build(BuildContext context) {
@@ -494,9 +515,10 @@ class _SearchBar extends StatelessWidget {
         height: 50,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: isDark
-              ? AppColors.surfaceVariantD
-              : colorScheme.surfaceContainerHighest,
+          color:
+              isDark
+                  ? AppColors.surfaceVariantD
+                  : colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             if (!isDark)
@@ -533,10 +555,11 @@ class _FilterBadge extends StatelessWidget {
   final VoidCallback onTap;
   final ColorScheme colorScheme;
 
-  const _FilterBadge(
-      {required this.hasActiveFilter,
-      required this.onTap,
-      required this.colorScheme});
+  const _FilterBadge({
+    required this.hasActiveFilter,
+    required this.onTap,
+    required this.colorScheme,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -558,8 +581,11 @@ class _FilterBadge extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(Icons.tune_rounded,
-                color: Colors.white, size: 22),
+            child: const Icon(
+              Icons.tune_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
           ),
           if (hasActiveFilter)
             Positioned(
@@ -605,7 +631,9 @@ class _CategoryChipsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final selectedCat =
-        state is PlacesLoadedState ? (state as PlacesLoadedState).selectedCategory : null;
+        state is PlacesLoadedState
+            ? (state as PlacesLoadedState).selectedCategory
+            : null;
 
     return SizedBox(
       height: 48,
@@ -627,16 +655,19 @@ class _CategoryChipsRow extends StatelessWidget {
                 color: isSelected ? cs.primary : cs.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isSelected
-                      ? cs.primary
-                      : cs.outline.withValues(alpha: 0.2),
+                  color:
+                      isSelected
+                          ? cs.primary
+                          : cs.outline.withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
                 children: [
-                  Icon(icon,
-                      size: 15,
-                      color: isSelected ? Colors.white : cs.onSurface),
+                  Icon(
+                    icon,
+                    size: 15,
+                    color: isSelected ? Colors.white : cs.onSurface,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     label,
@@ -666,11 +697,12 @@ class _PlaceCard extends StatelessWidget {
   final bool isDark;
   final ThemeData theme;
 
-  const _PlaceCard(
-      {required this.place,
-      required this.index,
-      required this.isDark,
-      required this.theme});
+  const _PlaceCard({
+    required this.place,
+    required this.index,
+    required this.isDark,
+    required this.theme,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -680,25 +712,32 @@ class _PlaceCard extends StatelessWidget {
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 500 + (index * 80)),
       curve: Curves.easeOutQuart,
-      builder: (_, v, child) => Opacity(
-          opacity: v,
-          child: Transform.translate(
-              offset: Offset(0, 30 * (1 - v)), child: child)),
+      builder:
+          (_, v, child) => Opacity(
+            opacity: v,
+            child: Transform.translate(
+              offset: Offset(0, 30 * (1 - v)),
+              child: child,
+            ),
+          ),
       child: GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => PlaceDetailsScreen(place: place)),
-        ),
+        onTap:
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PlaceDetailsScreen(place: place),
+              ),
+            ),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             color: isDark ? AppColors.surfaceVariantD : Colors.white,
             boxShadow: [
               BoxShadow(
-                color: isDark
-                    ? Colors.black.withValues(alpha: 0.3)
-                    : Colors.black.withValues(alpha: 0.07),
+                color:
+                    isDark
+                        ? Colors.black.withValues(alpha: 0.3)
+                        : Colors.black.withValues(alpha: 0.07),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -728,10 +767,7 @@ class _PlaceCard extends StatelessWidget {
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black38,
-                              ],
+                              colors: [Colors.transparent, Colors.black38],
                               stops: [0.5, 1.0],
                             ),
                           ),
@@ -747,10 +783,11 @@ class _PlaceCard extends StatelessWidget {
                             filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
-                                color:
-                                    Colors.white.withValues(alpha: 0.25),
+                                color: Colors.white.withValues(alpha: 0.25),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -770,22 +807,49 @@ class _PlaceCard extends StatelessWidget {
                       Positioned(
                         top: 8,
                         right: 8,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: BackdropFilter(
-                            filter:
-                                ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color:
-                                    Colors.white.withValues(alpha: 0.2),
-                                shape: BoxShape.circle,
+                        child: BlocBuilder<FavouritesCubit, FavouritesStates>(
+                          builder: (context, state) {
+                            final id = place.id;
+                            final isFav =
+                                id != null &&
+                                FavouritesCubit.get(
+                                  context,
+                                ).isPlaceFavourite(id);
+
+                            return GestureDetector(
+                              onTap:
+                                  id == null
+                                      ? null
+                                      : () => FavouritesCubit.get(
+                                        context,
+                                      ).togglePlaceFavourite(id),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                    sigmaX: 8,
+                                    sigmaY: 8,
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      isFav
+                                          ? Icons.favorite_rounded
+                                          : Icons.favorite_border,
+                                      color: isFav ? Colors.red : Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
+                                ),
                               ),
-                              child: const Icon(Icons.favorite_border,
-                                  color: Colors.white, size: 16),
-                            ),
-                          ),
+                            );
+                          },
                         ),
                       ),
                       // Rating
@@ -794,22 +858,28 @@ class _PlaceCard extends StatelessWidget {
                         right: 8,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.star_rounded,
-                                  color: Colors.amber, size: 13),
+                              const Icon(
+                                Icons.star_rounded,
+                                color: Colors.amber,
+                                size: 13,
+                              ),
                               const SizedBox(width: 3),
                               Text(
                                 place.rating?.toStringAsFixed(1) ?? '',
                                 style: GoogleFonts.dmSans(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold),
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ],
                           ),
@@ -838,16 +908,18 @@ class _PlaceCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.location_on_rounded,
-                              size: 12, color: cs.primary),
+                          Icon(
+                            Icons.location_on_rounded,
+                            size: 12,
+                            color: cs.primary,
+                          ),
                           const SizedBox(width: 3),
                           Expanded(
                             child: Text(
                               '${place.cityName}, ${place.stateName}',
                               style: GoogleFonts.dmSans(
                                 fontSize: 11,
-                                color: cs.onSurface
-                                    .withValues(alpha: 0.55),
+                                color: cs.onSurface.withValues(alpha: 0.55),
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),

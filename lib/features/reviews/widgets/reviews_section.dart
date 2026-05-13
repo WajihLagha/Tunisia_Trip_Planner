@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
+import 'package:tunisian_trip_planner/features/auth/auth_cubit/auth_cubit.dart';
 import 'package:tunisian_trip_planner/features/reviews/cubit/reviews_cubit.dart';
 import 'package:tunisian_trip_planner/features/reviews/cubit/reviews_states.dart';
 import 'package:tunisian_trip_planner/features/reviews/models/review_target_type.dart';
@@ -20,7 +21,10 @@ class ReviewsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ReviewsCubit()..fetchReviews(targetId: targetId, targetType: targetType),
+      create:
+          (context) =>
+              ReviewsCubit()
+                ..fetchReviews(targetId: targetId, targetType: targetType),
       child: _ReviewsSectionView(targetId: targetId, targetType: targetType),
     );
   }
@@ -30,10 +34,7 @@ class _ReviewsSectionView extends StatelessWidget {
   final String targetId;
   final ReviewTargetType targetType;
 
-  const _ReviewsSectionView({
-    required this.targetId,
-    required this.targetType,
-  });
+  const _ReviewsSectionView({required this.targetId, required this.targetType});
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +82,7 @@ class _ReviewsSectionView extends StatelessWidget {
 
         List reviews = [];
         bool hasMore = false;
-        
+
         if (state is ReviewsLoadedState) {
           reviews = state.reviews;
           hasMore = !state.isLastPage;
@@ -112,7 +113,7 @@ class _ReviewsSectionView extends StatelessWidget {
                         color: cs.primary,
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -122,12 +123,19 @@ class _ReviewsSectionView extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.surfaceVariantD : cs.surfaceContainerHighest,
+                    color:
+                        isDark
+                            ? AppColors.surfaceVariantD
+                            : cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
                     children: [
-                      Icon(Icons.rate_review_outlined, size: 48, color: cs.onSurface.withValues(alpha: 0.3)),
+                      Icon(
+                        Icons.rate_review_outlined,
+                        size: 48,
+                        color: cs.onSurface.withValues(alpha: 0.3),
+                      ),
                       const SizedBox(height: 12),
                       Text(
                         'No reviews yet',
@@ -152,10 +160,13 @@ class _ReviewsSectionView extends StatelessWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: reviews.length + (hasMore ? 1 : 0),
-                  separatorBuilder: (_, __) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Divider(color: cs.outline.withValues(alpha: 0.1)),
-                  ),
+                  separatorBuilder:
+                      (_, __) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Divider(
+                          color: cs.outline.withValues(alpha: 0.1),
+                        ),
+                      ),
                   itemBuilder: (context, index) {
                     if (index == reviews.length) {
                       return Center(
@@ -185,7 +196,7 @@ class _ReviewsSectionView extends StatelessWidget {
 
   void _showAddReviewBottomSheet(BuildContext ctx) {
     final cubit = ReviewsCubit.get(ctx);
-    
+
     showModalBottomSheet(
       context: ctx,
       isScrollControlled: true,
@@ -193,10 +204,7 @@ class _ReviewsSectionView extends StatelessWidget {
       builder: (bottomSheetCtx) {
         return BlocProvider.value(
           value: cubit,
-          child: _AddReviewForm(
-            targetId: targetId,
-            targetType: targetType,
-          ),
+          child: _AddReviewForm(targetId: targetId, targetType: targetType),
         );
       },
     );
@@ -245,7 +253,9 @@ class _ReviewTile extends StatelessWidget {
                   Row(
                     children: List.generate(5, (index) {
                       return Icon(
-                        index < rating ? Icons.star_rounded : Icons.star_border_rounded,
+                        index < rating
+                            ? Icons.star_rounded
+                            : Icons.star_border_rounded,
                         color: Colors.amber,
                         size: 14,
                       );
@@ -274,7 +284,7 @@ class _ReviewTile extends StatelessWidget {
               height: 1.5,
             ),
           ),
-        ]
+        ],
       ],
     );
   }
@@ -291,7 +301,6 @@ class _AddReviewForm extends StatefulWidget {
 }
 
 class _AddReviewFormState extends State<_AddReviewForm> {
-  int _rating = 0;
   final TextEditingController _commentController = TextEditingController();
 
   @override
@@ -301,24 +310,46 @@ class _AddReviewFormState extends State<_AddReviewForm> {
   }
 
   void _submit() {
-    if (_rating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a rating.')),
-      );
+    final comment = _commentController.text.trim();
+
+    if (comment.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please write a review.')));
       return;
     }
 
-    final userId = CacheHelper.getData('userId') ?? 'MOCK-USER-123';
+    final authCubit = AuthCubit.get(context);
+    final userId =
+        authCubit.currentUserId ??
+        CacheHelper.getData('userId') ??
+        'MOCK-USER-123';
+    final userName = _currentUserName(authCubit);
 
     ReviewsCubit.get(context).submitReview(
       targetId: widget.targetId,
       targetType: widget.targetType,
       userId: userId,
-      rating: _rating,
-      comment: _commentController.text,
+      userName: userName,
+      comment: comment,
     );
 
     Navigator.pop(context);
+  }
+
+  String _currentUserName(AuthCubit authCubit) {
+    final cachedName =
+        CacheHelper.getData('userName') ?? CacheHelper.getData('username');
+    if (cachedName is String && cachedName.trim().isNotEmpty) {
+      return cachedName.trim();
+    }
+
+    final email = authCubit.currentEmail;
+    if (email != null && email.trim().isNotEmpty) {
+      return email.split('@').first;
+    }
+
+    return 'TuniWays User';
   }
 
   @override
@@ -360,36 +391,15 @@ class _AddReviewFormState extends State<_AddReviewForm> {
               ),
             ),
             const SizedBox(height: 24),
-            Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(5, (index) {
-                  final isSelected = index < _rating;
-                  return GestureDetector(
-                    onTap: () => setState(() => _rating = index + 1),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: AnimatedScale(
-                        scale: isSelected ? 1.1 : 1.0,
-                        duration: const Duration(milliseconds: 200),
-                        child: Icon(
-                          isSelected ? Icons.star_rounded : Icons.star_border_rounded,
-                          color: Colors.amber,
-                          size: 40,
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-            ),
-            const SizedBox(height: 32),
             TextField(
               controller: _commentController,
               maxLines: 4,
               decoration: InputDecoration(
-                hintText: 'Share details of your own experience at this place...',
-                hintStyle: GoogleFonts.dmSans(color: cs.onSurface.withValues(alpha: 0.4)),
+                hintText:
+                    'Share details of your own experience at this place...',
+                hintStyle: GoogleFonts.dmSans(
+                  color: cs.onSurface.withValues(alpha: 0.4),
+                ),
                 filled: true,
                 fillColor: isDark ? Colors.black26 : cs.surfaceContainerHighest,
                 border: OutlineInputBorder(
@@ -407,11 +417,16 @@ class _AddReviewFormState extends State<_AddReviewForm> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: cs.primary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 child: Text(
                   'Submit Review',
-                  style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.dmSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),

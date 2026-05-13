@@ -11,6 +11,11 @@ import 'package:tunisian_trip_planner/features/places/models/places_response.dar
 import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 import 'package:tunisian_trip_planner/features/places/screens/place_details_screen.dart';
 import 'package:tunisian_trip_planner/features/accommodation/accommodation_detail_screen.dart';
+import 'package:tunisian_trip_planner/features/places/cubit/places_cubit.dart';
+import 'package:tunisian_trip_planner/features/places/cubit/places_states.dart';
+import 'package:tunisian_trip_planner/features/accommodation/cubit/accommodation_cubit.dart';
+import 'package:tunisian_trip_planner/features/accommodation/cubit/accommodation_states.dart';
+import 'package:tunisian_trip_planner/features/home_layout/cubit/home_cubit.dart';
 
 class FavouriteScreen extends StatefulWidget {
   const FavouriteScreen({super.key});
@@ -24,70 +29,113 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => PlacesCubit()..loadPlaces()),
+        BlocProvider(create: (_) => AccommodationCubit()..loadAccommodations()),
+      ],
+      child: Builder(
+        builder: (context) {
+          final theme = Theme.of(context);
+          final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'My Favourites',
-          style: GoogleFonts.dmSans(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: isDark ? Colors.white : Colors.black,
-          ),
-        ),
-      ),
-      body: BlocBuilder<FavouritesCubit, FavouritesStates>(
-        builder: (context, state) {
-          if (state is! FavouritesLoaded) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final favPlaces = MockPlacesData.places
-              .where((p) => state.favouritePlaceIds.contains(p.id))
-              .toList();
-
-          final favAccoms = MockAccommodationData.accommodations
-              .where((a) => state.favouriteAccommodationIds.contains(a.id.toString()))
-              .toList();
-
-          return Column(
-            children: [
-              const SizedBox(height: 16),
-              // Segmented Control
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.surfaceVariantD : Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      _buildTab(0, 'Places', isDark),
-                      _buildTab(1, 'Stays', isDark),
-                      _buildTab(2, 'Transport', isDark),
-                    ],
-                  ),
+          return Scaffold(
+            backgroundColor:
+                isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
+              leading: IconButton(
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: Text(
+                'My Favourites',
+                style: GoogleFonts.dmSans(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : Colors.black,
                 ),
               ),
-              const SizedBox(height: 24),
-              // Tab Content
-              Expanded(
-                child: _buildSelectedTab(favPlaces, favAccoms, isDark, state),
-              ),
-            ],
+            ),
+            body: BlocBuilder<FavouritesCubit, FavouritesStates>(
+              builder: (context, state) {
+                if (state is! FavouritesLoaded) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final placesState = context.watch<PlacesCubit>().state;
+                final allPlaces = {
+                  ...MockPlacesData.places,
+                  if (placesState is PlacesLoadedState) ...placesState.places,
+                };
+
+                final favPlaces =
+                    allPlaces
+                        .where((p) => state.favouritePlaceIds.contains(p.id))
+                        .toList();
+
+                final accommodationState =
+                    context.watch<AccommodationCubit>().state;
+                final allAccoms = {
+                  ...MockAccommodationData.accommodations,
+                  if (accommodationState is AccommodationLoadedState)
+                    ...accommodationState.accommodations,
+                };
+
+                final favAccoms =
+                    allAccoms
+                        .where(
+                          (a) => state.favouriteAccommodationIds.contains(
+                            a.id.toString(),
+                          ),
+                        )
+                        .toList();
+
+                return Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    // Segmented Control
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color:
+                              isDark ? AppColors.surfaceVariantD : Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color:
+                                isDark ? Colors.grey[800]! : Colors.grey[200]!,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            _buildTab(0, 'Places', isDark),
+                            _buildTab(1, 'Stays', isDark),
+                            _buildTab(2, 'Transport', isDark),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Tab Content
+                    Expanded(
+                      child: _buildSelectedTab(
+                        favPlaces,
+                        favAccoms,
+                        isDark,
+                        state,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           );
         },
       ),
@@ -112,9 +160,10 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
               style: GoogleFonts.dmSans(
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected 
-                    ? Colors.black87 
-                    : (isDark ? Colors.white70 : Colors.black54),
+                color:
+                    isSelected
+                        ? Colors.black87
+                        : (isDark ? Colors.white70 : Colors.black54),
               ),
             ),
           ),
@@ -123,7 +172,12 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
     );
   }
 
-  Widget _buildSelectedTab(List<PlacesResponse> places, List<AccommodationDto> accoms, bool isDark, FavouritesLoaded state) {
+  Widget _buildSelectedTab(
+    List<PlacesResponse> places,
+    List<AccommodationDto> accoms,
+    bool isDark,
+    FavouritesLoaded state,
+  ) {
     if (_selectedIndex == 0) {
       return _PlacesTab(places: places, isDark: isDark, state: state);
     } else if (_selectedIndex == 1) {
@@ -140,8 +194,11 @@ class _PlacesTab extends StatelessWidget {
   final bool isDark;
   final FavouritesLoaded state;
 
-  const _PlacesTab(
-      {required this.places, required this.isDark, required this.state});
+  const _PlacesTab({
+    required this.places,
+    required this.isDark,
+    required this.state,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -164,9 +221,10 @@ class _PlacesTab extends StatelessWidget {
           place: place,
           isDark: isDark,
           onTap: () => navigateTo(context, PlaceDetailsScreen(place: place)),
-          onRemove: () =>
-              FavouritesCubit.get(context)
-                  .togglePlaceFavourite(place.id ?? ''),
+          onRemove:
+              () => FavouritesCubit.get(
+                context,
+              ).togglePlaceFavourite(place.id ?? ''),
         );
       },
     );
@@ -179,8 +237,11 @@ class _StaysTab extends StatelessWidget {
   final bool isDark;
   final FavouritesLoaded state;
 
-  const _StaysTab(
-      {required this.accommodations, required this.isDark, required this.state});
+  const _StaysTab({
+    required this.accommodations,
+    required this.isDark,
+    required this.state,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -202,11 +263,15 @@ class _StaysTab extends StatelessWidget {
         return _FavStayCard(
           accommodation: accom,
           isDark: isDark,
-          onTap: () =>
-              navigateTo(context, AccommodationDetailScreen(accommodation: accom)),
-          onRemove: () =>
-              FavouritesCubit.get(context)
-                  .toggleAccommodationFavourite(accom.id.toString()),
+          onTap:
+              () => navigateTo(
+                context,
+                AccommodationDetailScreen(accommodation: accom),
+              ),
+          onRemove:
+              () => FavouritesCubit.get(
+                context,
+              ).toggleAccommodationFavourite(accom.id.toString()),
         );
       },
     );
@@ -257,22 +322,23 @@ class _EmptyState extends StatelessWidget {
               tween: Tween(begin: 0.9, end: 1.05),
               duration: const Duration(milliseconds: 1500),
               curve: Curves.easeInOut,
-              builder: (context, scale, child) => Transform.scale(
-                scale: scale,
-                child: child,
-              ),
+              builder:
+                  (context, scale, child) =>
+                      Transform.scale(scale: scale, child: child),
               child: Container(
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.green900.withValues(alpha: 0.4)
-                      : AppColors.green100.withValues(alpha: 0.6),
+                  color:
+                      isDark
+                          ? AppColors.green900.withValues(alpha: 0.4)
+                          : AppColors.green100.withValues(alpha: 0.6),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isDark
-                        ? AppColors.green700.withValues(alpha: 0.5)
-                        : AppColors.green300.withValues(alpha: 0.8),
+                    color:
+                        isDark
+                            ? AppColors.green700.withValues(alpha: 0.5)
+                            : AppColors.green300.withValues(alpha: 0.8),
                     width: 2,
                   ),
                 ),
@@ -287,7 +353,8 @@ class _EmptyState extends StatelessWidget {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
+                color:
+                    isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
               ),
               textAlign: TextAlign.center,
             ),
@@ -296,45 +363,59 @@ class _EmptyState extends StatelessWidget {
               subtitle,
               style: GoogleFonts.dmSans(
                 fontSize: 14,
-                color: isDark
-                    ? AppColors.onSurfaceDark.withValues(alpha: 0.6)
-                    : AppColors.onSurfaceLight.withValues(alpha: 0.6),
+                color:
+                    isDark
+                        ? AppColors.onSurfaceDark.withValues(alpha: 0.6)
+                        : AppColors.onSurfaceLight.withValues(alpha: 0.6),
                 height: 1.6,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.green600, AppColors.green400],
+            GestureDetector(
+              onTap: () {
+                // Navigate back and switch to Explore tab in HomeLayout
+                Navigator.pop(context);
+                final homeCubit = HomeCubit.get(context);
+                homeCubit.changeTripNavBar(0);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
                 ),
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.green500.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.green600, AppColors.green400],
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.explore_rounded,
-                      color: Colors.white, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Start Exploring',
-                    style: GoogleFonts.dmSans(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.green500.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.explore_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Start Exploring',
+                      style: GoogleFonts.dmSans(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -380,7 +461,8 @@ class _FavPlaceCard extends StatelessWidget {
             // Image
             ClipRRect(
               borderRadius: const BorderRadius.horizontal(
-                  left: Radius.circular(20)),
+                left: Radius.circular(20),
+              ),
               child: _buildImage(place.mainImageUrl, 100, 100),
             ),
             // Details
@@ -395,9 +477,10 @@ class _FavPlaceCard extends StatelessWidget {
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppColors.onSurfaceDark
-                            : AppColors.onSurfaceLight,
+                        color:
+                            isDark
+                                ? AppColors.onSurfaceDark
+                                : AppColors.onSurfaceLight,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -405,9 +488,11 @@ class _FavPlaceCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.location_on_rounded,
-                            size: 12,
-                            color: AppColors.green500),
+                        Icon(
+                          Icons.location_on_rounded,
+                          size: 12,
+                          color: AppColors.green500,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -427,17 +512,21 @@ class _FavPlaceCard extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.star_rounded,
-                                size: 14, color: Color(0xFFFFC107)),
+                            const Icon(
+                              Icons.star_rounded,
+                              size: 14,
+                              color: Color(0xFFFFC107),
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               '${place.rating?.toStringAsFixed(1)}',
                               style: GoogleFonts.dmSans(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: isDark
-                                    ? AppColors.onSurfaceDark
-                                    : AppColors.onSurfaceLight,
+                                color:
+                                    isDark
+                                        ? AppColors.onSurfaceDark
+                                        : AppColors.onSurfaceLight,
                               ),
                             ),
                           ],
@@ -450,8 +539,11 @@ class _FavPlaceCard extends StatelessWidget {
                               color: Colors.red.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.favorite_rounded,
-                                size: 16, color: Colors.red),
+                            child: const Icon(
+                              Icons.favorite_rounded,
+                              size: 16,
+                              color: Colors.red,
+                            ),
                           ),
                         ),
                       ],
@@ -483,9 +575,10 @@ class _FavStayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imgUrl = accommodation.images?.isNotEmpty == true
-        ? accommodation.images!.first.imageUrl
-        : null;
+    final imgUrl =
+        accommodation.images?.isNotEmpty == true
+            ? accommodation.images!.first.imageUrl
+            : null;
 
     return GestureDetector(
       onTap: onTap,
@@ -506,7 +599,8 @@ class _FavStayCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.horizontal(
-                  left: Radius.circular(20)),
+                left: Radius.circular(20),
+              ),
               child: _buildImage(imgUrl, 100, 100),
             ),
             Expanded(
@@ -520,9 +614,10 @@ class _FavStayCard extends StatelessWidget {
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppColors.onSurfaceDark
-                            : AppColors.onSurfaceLight,
+                        color:
+                            isDark
+                                ? AppColors.onSurfaceDark
+                                : AppColors.onSurfaceLight,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -530,14 +625,19 @@ class _FavStayCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.location_on_rounded,
-                            size: 12, color: AppColors.green500),
+                        Icon(
+                          Icons.location_on_rounded,
+                          size: 12,
+                          color: AppColors.green500,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             '${accommodation.city}, ${accommodation.state}',
                             style: GoogleFonts.dmSans(
-                                fontSize: 12, color: AppColors.mutedText),
+                              fontSize: 12,
+                              color: AppColors.mutedText,
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -563,8 +663,11 @@ class _FavStayCard extends StatelessWidget {
                               color: Colors.red.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.favorite_rounded,
-                                size: 16, color: Colors.red),
+                            child: const Icon(
+                              Icons.favorite_rounded,
+                              size: 16,
+                              color: Colors.red,
+                            ),
                           ),
                         ),
                       ],
@@ -591,14 +694,19 @@ Widget _buildImage(String? url, double w, double h) {
     );
   }
   if (url.startsWith('assets/')) {
-    return Image.asset(url,
-        width: w, height: h, fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-              width: w,
-              height: h,
-              color: AppColors.green800,
-              child: const Icon(Icons.image_rounded, color: Colors.white30),
-            ));
+    return Image.asset(
+      url,
+      width: w,
+      height: h,
+      fit: BoxFit.cover,
+      errorBuilder:
+          (_, __, ___) => Container(
+            width: w,
+            height: h,
+            color: AppColors.green800,
+            child: const Icon(Icons.image_rounded, color: Colors.white30),
+          ),
+    );
   }
   return Container(
     width: w,

@@ -28,9 +28,10 @@ class HotelHorizontalCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.25)
-                  : AppColors.green500.withValues(alpha: 0.07),
+              color:
+                  isDark
+                      ? Colors.black.withValues(alpha: 0.25)
+                      : AppColors.green500.withValues(alpha: 0.07),
               blurRadius: 14,
               offset: const Offset(0, 4),
             ),
@@ -51,19 +52,27 @@ class HotelHorizontalCard extends StatelessWidget {
                     width: 110,
                     height: 110,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 110,
-                      height: 110,
-                      color: isDark ? Colors.grey[800] : Colors.grey[200],
-                      child: const Icon(Icons.hotel, size: 36, color: Colors.grey),
-                    ),
+                    errorBuilder:
+                        (_, __, ___) => Container(
+                          width: 110,
+                          height: 110,
+                          color: isDark ? Colors.grey[800] : Colors.grey[200],
+                          child: const Icon(
+                            Icons.hotel,
+                            size: 36,
+                            color: Colors.grey,
+                          ),
+                        ),
                   ),
                   // Rating badge
                   Positioned(
                     bottom: 8,
                     left: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(12),
@@ -71,7 +80,11 @@ class HotelHorizontalCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.star, color: Colors.orange, size: 12),
+                          const Icon(
+                            Icons.star,
+                            color: Colors.orange,
+                            size: 12,
+                          ),
                           const SizedBox(width: 3),
                           Text(
                             '${hotel.rating ?? 0.0}',
@@ -92,7 +105,10 @@ class HotelHorizontalCard extends StatelessWidget {
             // ── Details ───────────────────────────────────────────────────
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 14,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -102,7 +118,10 @@ class HotelHorizontalCard extends StatelessWidget {
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
+                        color:
+                            isDark
+                                ? AppColors.onSurfaceDark
+                                : AppColors.onSurfaceLight,
                         height: 1.2,
                       ),
                       maxLines: 2,
@@ -112,7 +131,11 @@ class HotelHorizontalCard extends StatelessWidget {
                     // City
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 13, color: AppColors.green500),
+                        Icon(
+                          Icons.location_on,
+                          size: 13,
+                          color: AppColors.green500,
+                        ),
                         const SizedBox(width: 3),
                         Expanded(
                           child: Text(

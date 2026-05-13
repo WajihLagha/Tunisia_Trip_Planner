@@ -2,9 +2,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tunisian_trip_planner/features/transport/cubit/transport_states.dart';
 import 'package:tunisian_trip_planner/features/transport/models/transport_model.dart';
 import 'package:tunisian_trip_planner/features/transport/models/vehicle_model.dart';
-import 'package:tunisian_trip_planner/features/transport/models/vehicle_availability_model.dart';
 import 'package:tunisian_trip_planner/features/transport/enums/transport_type.dart';
 import 'package:tunisian_trip_planner/features/transport/enums/fuel_type.dart';
+import 'package:tunisian_trip_planner/features/transport/models/transport_image_model.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/end_points.dart';
+import 'package:flutter/foundation.dart';
 
 class TransportCubit extends Cubit<TransportStates> {
   TransportCubit() : super(TransportInitialState());
@@ -20,21 +23,79 @@ class TransportCubit extends Cubit<TransportStates> {
   List<TransportModel> get filteredTransports {
     if (selectedCity == 'All') return _allTransports;
     return _allTransports
-        .where((t) => t.city.toLowerCase() == selectedCity.toLowerCase())
+        .where((t) => t.cityId.toLowerCase() == selectedCity.toLowerCase())
         .toList();
   }
 
-  void loadTransports() {
+  Future<void> loadTransports() async {
     emit(TransportLoadingState());
     try {
-      // Mock data — replace with API call later
+      final response = await DioHelper.getData(url: EndPoints.transports);
+      if (response.statusCode == 200) {
+        // Handle both paginated response ('content') or direct list
+        final List<dynamic> data = response.data['content'] ?? response.data;
+        // Parse basic transport data
+        List<TransportModel> baseTransports = data.map((json) => TransportModel.fromJson(json)).toList();
+        
+        // Fetch images and vehicles for each transport concurrently
+        _allTransports = await Future.wait(
+          baseTransports.map((t) async {
+            if (t.id == null) return t;
+
+            List<TransportImageModel> fetchedImages = t.images;
+            List<VehicleModel> fetchedVehicles = t.vehicles;
+
+            try {
+              // Concurrently fetch both images and vehicles for this transport
+              dynamic imgResponse;
+              dynamic vehResponse;
+
+              await Future.wait([
+                () async {
+                  try {
+                    imgResponse = await DioHelper.getData(url: EndPoints.transportImagesByTransport(t.id!));
+                  } catch (_) {}
+                }(),
+                () async {
+                  try {
+                    vehResponse = await DioHelper.getData(url: EndPoints.vehiclesByTransport(t.id!));
+                  } catch (_) {}
+                }(),
+              ]);
+
+              if (imgResponse != null && imgResponse?.statusCode == 200) {
+                final List<dynamic> imgData = imgResponse.data;
+                fetchedImages = imgData.map((e) => TransportImageModel.fromJson(e)).toList();
+              }
+
+              if (vehResponse != null && vehResponse?.statusCode == 200) {
+                final List<dynamic> vehData = vehResponse.data;
+                fetchedVehicles = vehData.map((e) => VehicleModel.fromJson(e)).toList();
+              }
+            } catch (e) {
+              debugPrint('[TransportCubit] Error enriching transport ${t.id}: $e');
+            }
+
+            return t.copyWith(images: fetchedImages, vehicles: fetchedVehicles);
+          }),
+        );
+        
+        emit(TransportLoadedState(
+          transports: filteredTransports,
+          selectedCity: selectedCity,
+        ));
+      } else {
+        emit(TransportErrorState('Failed to load transports: ${response.statusCode}'));
+      }
+    } catch (e) {
+      debugPrint('[TransportCubit] Error loading transports from API: $e');
+      // Fallback to mock data during local development if API is unreachable
+      debugPrint('[TransportCubit] Falling back to mock data...');
       _allTransports = _getMockTransports();
       emit(TransportLoadedState(
         transports: filteredTransports,
         selectedCity: selectedCity,
       ));
-    } catch (e) {
-      emit(TransportErrorState(e.toString()));
     }
   }
 
@@ -55,16 +116,16 @@ class TransportCubit extends Cubit<TransportStates> {
         description:
             'Experience the Mediterranean coast with our curated fleet of luxury vehicles. We specialize in providing seamless journeys from the bustling medinas to the serene oasis resorts. Every vehicle is meticulously maintained to ensure your comfort, safety, and a touch of elegance on every road.',
         type: TransportType.carRental,
-        fuelType: FuelType.diesel,
-        rating: 4.9,
-        reviewCount: 124,
-        city: 'Tunis',
+        averageRating: 4.9,
+        totalReviews: 124,
+        cityId: 'Tunis',
         address: 'Avenue Habib Bourguiba, Tunis, Tunisia',
-        isFeatured: true,
-        isVerifiedPartner: true,
-        phone: '+216 71 234 567',
-        email: 'contact@saharaexplorers.tn',
-        pricePerDay: 85.0,
+        stripeOnboarded: true,
+        contactPhone: '+216 71 234 567',
+        contactEmail: 'contact@saharaexplorers.tn',
+        priceMin: 85.0,
+        priceMax: 450.0,
+        images: [],
         vehicles: [
           VehicleModel(
             id: 1,
@@ -77,9 +138,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 180,
             fuelType: FuelType.diesel,
             quantity: 2,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 1, vehicleId: 1, isAvailable: true),
-            ],
           ),
           VehicleModel(
             id: 2,
@@ -92,9 +150,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 350,
             fuelType: FuelType.petrol,
             quantity: 1,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 2, vehicleId: 2, isAvailable: true),
-            ],
           ),
           VehicleModel(
             id: 3,
@@ -107,9 +162,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 450,
             fuelType: FuelType.diesel,
             quantity: 1,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 3, vehicleId: 3, isAvailable: true),
-            ],
           ),
         ],
       ),
@@ -119,16 +171,16 @@ class TransportCubit extends Cubit<TransportStates> {
         description:
             'Coastal transport and excursion services along the Mediterranean. From Sousse\'s medina to the pristine beaches of Port El Kantaoui, we make every journey an experience.',
         type: TransportType.carRental,
-        fuelType: FuelType.petrol,
-        rating: 4.7,
-        reviewCount: 89,
-        city: 'Sousse',
+        averageRating: 4.7,
+        totalReviews: 89,
+        cityId: 'Sousse',
         address: 'Rue de la Plage, Sousse, Tunisia',
-        isFeatured: false,
-        isVerifiedPartner: true,
-        phone: '+216 73 456 789',
-        email: 'info@azurecoast.tn',
-        pricePerDay: 65.0,
+        stripeOnboarded: true,
+        contactPhone: '+216 73 456 789',
+        contactEmail: 'info@azurecoast.tn',
+        priceMin: 65.0,
+        priceMax: 95.0,
+        images: [],
         vehicles: [
           VehicleModel(
             id: 4,
@@ -141,9 +193,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 65,
             fuelType: FuelType.petrol,
             quantity: 3,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 4, vehicleId: 4, isAvailable: true),
-            ],
           ),
           VehicleModel(
             id: 5,
@@ -156,9 +205,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 95,
             fuelType: FuelType.diesel,
             quantity: 2,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 5, vehicleId: 5, isAvailable: false),
-            ],
           ),
         ],
       ),
@@ -168,16 +214,15 @@ class TransportCubit extends Cubit<TransportStates> {
         description:
             'Cultural heritage transport services in historic city centers. Explore Tunis, Carthage, and Sidi Bou Said with our knowledgeable drivers.',
         type: TransportType.taxi,
-        fuelType: FuelType.hybrid,
-        rating: 4.8,
-        reviewCount: 210,
-        city: 'Tunis',
+        averageRating: 4.8,
+        totalReviews: 210,
+        cityId: 'Tunis',
         address: 'Place de la Kasbah, Tunis, Tunisia',
-        isFeatured: false,
-        isVerifiedPartner: true,
-        phone: '+216 71 987 654',
-        email: 'tours@medinaheritage.tn',
-        pricePerDay: 55.0,
+        stripeOnboarded: true,
+        contactPhone: '+216 71 987 654',
+        contactEmail: 'tours@medinaheritage.tn',
+        priceMin: 55.0,
+        images: [],
         vehicles: [
           VehicleModel(
             id: 6,
@@ -190,9 +235,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 150,
             fuelType: FuelType.hybrid,
             quantity: 2,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 6, vehicleId: 6, isAvailable: true),
-            ],
           ),
           VehicleModel(
             id: 7,
@@ -205,9 +247,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 120,
             fuelType: FuelType.diesel,
             quantity: 1,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 7, vehicleId: 7, isAvailable: true),
-            ],
           ),
         ],
       ),
@@ -217,16 +256,15 @@ class TransportCubit extends Cubit<TransportStates> {
         description:
             'Fast and reliable bus service connecting major Tunisian cities. Comfortable seats, AC, and WiFi on board.',
         type: TransportType.bus,
-        fuelType: FuelType.diesel,
-        rating: 4.5,
-        reviewCount: 312,
-        city: 'Ariana',
+        averageRating: 4.5,
+        totalReviews: 312,
+        cityId: 'Ariana',
         address: 'Gare Routière, Ariana, Tunisia',
-        isFeatured: true,
-        isVerifiedPartner: false,
-        phone: '+216 71 111 222',
-        email: 'booking@carthageexpress.tn',
-        pricePerDay: 25.0,
+        stripeOnboarded: false,
+        contactPhone: '+216 71 111 222',
+        contactEmail: 'booking@carthageexpress.tn',
+        priceMin: 25.0,
+        images: [],
         vehicles: [
           VehicleModel(
             id: 8,
@@ -239,9 +277,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 25,
             fuelType: FuelType.diesel,
             quantity: 5,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 8, vehicleId: 8, isAvailable: true),
-            ],
           ),
         ],
       ),
@@ -251,16 +286,15 @@ class TransportCubit extends Cubit<TransportStates> {
         description:
             'Island transport with scenic coastal routes. Electric vehicles for a green travel experience on Djerba island.',
         type: TransportType.carRental,
-        fuelType: FuelType.electric,
-        rating: 4.6,
-        reviewCount: 67,
-        city: 'Médenine',
+        averageRating: 4.6,
+        totalReviews: 67,
+        cityId: 'Médenine',
         address: 'Zone Touristique, Djerba, Médenine',
-        isFeatured: false,
-        isVerifiedPartner: true,
-        phone: '+216 75 222 333',
-        email: 'rent@djerbarides.tn',
-        pricePerDay: 90.0,
+        stripeOnboarded: true,
+        contactPhone: '+216 75 222 333',
+        contactEmail: 'rent@djerbarides.tn',
+        priceMin: 90.0,
+        images: [],
         vehicles: [
           VehicleModel(
             id: 9,
@@ -273,9 +307,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 200,
             fuelType: FuelType.electric,
             quantity: 2,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 9, vehicleId: 9, isAvailable: true),
-            ],
           ),
           VehicleModel(
             id: 10,
@@ -288,9 +319,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 80,
             fuelType: FuelType.electric,
             quantity: 3,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 10, vehicleId: 10, isAvailable: true),
-            ],
           ),
         ],
       ),
@@ -300,16 +328,15 @@ class TransportCubit extends Cubit<TransportStates> {
         description:
             'Reliable taxi network covering greater Sfax area. Available 24/7 for airport transfers and city rides.',
         type: TransportType.taxi,
-        fuelType: FuelType.petrol,
-        rating: 4.3,
-        reviewCount: 156,
-        city: 'Sfax',
+        averageRating: 4.3,
+        totalReviews: 156,
+        cityId: 'Sfax',
         address: 'Centre Ville, Sfax, Tunisia',
-        isFeatured: false,
-        isVerifiedPartner: false,
-        phone: '+216 74 333 444',
-        email: 'dispatch@sfaxcabs.tn',
-        pricePerDay: 30.0,
+        stripeOnboarded: false,
+        contactPhone: '+216 74 333 444',
+        contactEmail: 'dispatch@sfaxcabs.tn',
+        priceMin: 30.0,
+        images: [],
         vehicles: [
           VehicleModel(
             id: 11,
@@ -322,9 +349,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 30,
             fuelType: FuelType.petrol,
             quantity: 8,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 11, vehicleId: 11, isAvailable: false),
-            ],
           ),
         ],
       ),
@@ -334,16 +358,15 @@ class TransportCubit extends Cubit<TransportStates> {
         description:
             'Comfortable rides through the holy city and surrounding areas. Discover the Great Mosque and historic sites in style.',
         type: TransportType.carRental,
-        fuelType: FuelType.hybrid,
-        rating: 4.4,
-        reviewCount: 93,
-        city: 'Kairouan',
+        averageRating: 4.4,
+        totalReviews: 93,
+        cityId: 'Kairouan',
         address: 'Avenue de la République, Kairouan, Tunisia',
-        isFeatured: true,
-        isVerifiedPartner: true,
-        phone: '+216 77 444 555',
-        email: 'info@kairouanrides.tn',
-        pricePerDay: 70.0,
+        stripeOnboarded: true,
+        contactPhone: '+216 77 444 555',
+        contactEmail: 'info@kairouanrides.tn',
+        priceMin: 70.0,
+        images: [],
         vehicles: [
           VehicleModel(
             id: 12,
@@ -356,9 +379,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 110,
             fuelType: FuelType.hybrid,
             quantity: 2,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 12, vehicleId: 12, isAvailable: true),
-            ],
           ),
           VehicleModel(
             id: 13,
@@ -371,9 +391,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 85,
             fuelType: FuelType.diesel,
             quantity: 1,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 13, vehicleId: 13, isAvailable: true),
-            ],
           ),
         ],
       ),
@@ -383,16 +400,15 @@ class TransportCubit extends Cubit<TransportStates> {
         description:
             'Scenic coastal transport services in northern Tunisia. Perfect for exploring Bizerte\'s old port and beautiful lagoons.',
         type: TransportType.carRental,
-        fuelType: FuelType.petrol,
-        rating: 4.7,
-        reviewCount: 78,
-        city: 'Bizerte',
+        averageRating: 4.7,
+        totalReviews: 78,
+        cityId: 'Bizerte',
         address: 'Port de Plaisance, Bizerte, Tunisia',
-        isFeatured: false,
-        isVerifiedPartner: false,
-        phone: '+216 72 555 666',
-        email: 'reservations@bluelagoon.tn',
-        pricePerDay: 60.0,
+        stripeOnboarded: false,
+        contactPhone: '+216 72 555 666',
+        contactEmail: 'reservations@bluelagoon.tn',
+        priceMin: 60.0,
+        images: [],
         vehicles: [
           VehicleModel(
             id: 14,
@@ -405,9 +421,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 55,
             fuelType: FuelType.petrol,
             quantity: 3,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 14, vehicleId: 14, isAvailable: true),
-            ],
           ),
         ],
       ),
@@ -417,16 +430,15 @@ class TransportCubit extends Cubit<TransportStates> {
         description:
             'Desert oasis excursions and airport transfers. Explore Chebika, Tamerza, and Mides canyons with experienced local guides.',
         type: TransportType.bus,
-        fuelType: FuelType.diesel,
-        rating: 4.8,
-        reviewCount: 45,
-        city: 'Tozeur',
+        averageRating: 4.8,
+        totalReviews: 45,
+        cityId: 'Tozeur',
         address: 'Place des Martyrs, Tozeur, Tunisia',
-        isFeatured: true,
-        isVerifiedPartner: true,
-        phone: '+216 76 666 777',
-        email: 'tours@oasisshuttle.tn',
-        pricePerDay: 40.0,
+        stripeOnboarded: true,
+        contactPhone: '+216 76 666 777',
+        contactEmail: 'tours@oasisshuttle.tn',
+        priceMin: 40.0,
+        images: [],
         vehicles: [
           VehicleModel(
             id: 15,
@@ -439,9 +451,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 250,
             fuelType: FuelType.diesel,
             quantity: 2,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 15, vehicleId: 15, isAvailable: true),
-            ],
           ),
           VehicleModel(
             id: 16,
@@ -454,9 +463,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 180,
             fuelType: FuelType.diesel,
             quantity: 1,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 16, vehicleId: 16, isAvailable: false),
-            ],
           ),
         ],
       ),
@@ -466,16 +472,15 @@ class TransportCubit extends Cubit<TransportStates> {
         description:
             'Premium car rental for Cap Bon peninsula exploration. From Hammamet beaches to Kelibia fortress, travel in comfort.',
         type: TransportType.carRental,
-        fuelType: FuelType.petrol,
-        rating: 4.5,
-        reviewCount: 102,
-        city: 'Nabeul',
+        averageRating: 4.5,
+        totalReviews: 102,
+        cityId: 'Nabeul',
         address: 'Avenue Habib Thameur, Nabeul, Tunisia',
-        isFeatured: false,
-        isVerifiedPartner: true,
-        phone: '+216 72 777 888',
-        email: 'rent@nabeulcars.tn',
-        pricePerDay: 75.0,
+        stripeOnboarded: true,
+        contactPhone: '+216 72 777 888',
+        contactEmail: 'rent@nabeulcars.tn',
+        priceMin: 75.0,
+        images: [],
         vehicles: [
           VehicleModel(
             id: 17,
@@ -488,9 +493,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 70,
             fuelType: FuelType.petrol,
             quantity: 4,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 17, vehicleId: 17, isAvailable: true),
-            ],
           ),
           VehicleModel(
             id: 18,
@@ -503,9 +505,6 @@ class TransportCubit extends Cubit<TransportStates> {
             vehiclePrice: 160,
             fuelType: FuelType.diesel,
             quantity: 1,
-            availabilities: const [
-              VehicleAvailabilityModel(id: 18, vehicleId: 18, isAvailable: true),
-            ],
           ),
         ],
       ),

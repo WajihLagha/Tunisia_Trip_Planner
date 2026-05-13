@@ -286,21 +286,6 @@ class _AiTripBodyState extends State<_AiTripBody> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8.0,
-            children: ['Family Friendly', 'Budget Friendly', 'Luxury', 'Relaxing', 'Adventure', 'Romantic', 'Vegan Options', 'Accessible']
-                .map((pref) {
-              final isSelected = cubit.selectedPreferences.contains(pref);
-              return FilterChip(
-                label: Text(pref, style: TextStyle(color: isSelected && !isDark ? AppColors.green950 : textColor)),
-                selected: isSelected,
-                selectedColor: isDark ? AppColors.green700 : AppColors.accent,
-                backgroundColor: isDark ? AppColors.surfaceVariantD : AppColors.surfaceVariantL,
-                onSelected: (val) => cubit.togglePreference(pref),
-              );
-            }).toList(),
-          ),
         ],
       ),
     );

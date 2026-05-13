@@ -23,7 +23,10 @@ class HomeLayout extends StatelessWidget {
             extendBody: true,
             body: SafeArea(
               bottom: false,
-              child: cubit.bottomScreen[cubit.currentIndex],
+              child: IndexedStack(
+                index: cubit.currentIndex,
+                children: cubit.bottomScreen,
+              ),
             ),
             bottomNavigationBar: TripBottomNavBar(
               currentIndex: cubit.currentIndex,

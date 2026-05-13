@@ -3,6 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 import 'package:tunisian_trip_planner/features/accommodation/models/accommodation.dart';
 import 'package:tunisian_trip_planner/features/accommodation/models/room.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tunisian_trip_planner/features/auth/auth_cubit/auth_cubit.dart';
+import 'package:tunisian_trip_planner/features/bookings/cubit/booking_cubit.dart';
+import 'package:tunisian_trip_planner/features/bookings/cubit/booking_states.dart';
+import 'package:tunisian_trip_planner/features/bookings/models/booking_request.dart';
+import 'package:tunisian_trip_planner/features/bookings/enums/payment_method.dart';
 
 class RoomDetailScreen extends StatefulWidget {
   final RoomDto room;
@@ -11,11 +17,7 @@ class RoomDetailScreen extends StatefulWidget {
   /// from the global carousel where the parent is not easily available.
   final AccommodationDto? accommodation;
 
-  const RoomDetailScreen({
-    super.key,
-    required this.room,
-    this.accommodation,
-  });
+  const RoomDetailScreen({super.key, required this.room, this.accommodation});
 
   @override
   State<RoomDetailScreen> createState() => _RoomDetailScreenState();
@@ -23,6 +25,7 @@ class RoomDetailScreen extends StatefulWidget {
 
 class _RoomDetailScreenState extends State<RoomDetailScreen> {
   int _nights = 1;
+  PaymentMethod _selectedPaymentMethod = PaymentMethod.stripe;
 
   RoomDto get room => widget.room;
   AccommodationDto? get hotel => widget.accommodation;
@@ -30,8 +33,11 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
   double get _total => (room.price ?? 0) * _nights;
 
   String get _roomImagePath {
-    final url = room.images?.isNotEmpty == true ? room.images!.first.imageUrl : null;
-    return (url != null && url.isNotEmpty) ? url : 'assets/images/default_room.jpg';
+    final url =
+        room.images?.isNotEmpty == true ? room.images!.first.imageUrl : null;
+    return (url != null && url.isNotEmpty)
+        ? url
+        : 'assets/images/default_room.jpg';
   }
 
   String get _roomTypeName {
@@ -70,41 +76,119 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-      body: Column(
-        children: [
-          Expanded(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                _buildSliverAppBar(context, cs, isDark),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTitleSection(cs, isDark),
-                        const SizedBox(height: 24),
-                        _buildInfoChips(cs, isDark),
-                        const SizedBox(height: 28),
-                        _buildAvailabilityBanner(cs, isDark),
-                        const SizedBox(height: 28),
-                        _buildAmenitiesSection(cs, isDark),
-                        const SizedBox(height: 28),
-                        _buildNightSelector(cs, isDark),
-                        const SizedBox(height: 28),
-                        if (hotel != null) _buildHotelReference(cs, isDark),
-                        if (hotel != null) const SizedBox(height: 28),
-                        _buildPriceSummary(cs, isDark),
+      body: BlocConsumer<BookingCubit, BookingState>(
+        listener: (context, state) {
+          if (state is BookingActionSuccess) {
+            showDialog(
+              context: context,
+              builder: (ctx) {
+                final cs = Theme.of(ctx).colorScheme;
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  title: Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle_rounded,
+                        color: cs.primary,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Booking Confirmed!',
+                        style: GoogleFonts.playfairDisplay(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  content: Text(
+                    'Your room has been booked for '
+                    '$_nights night${_nights > 1 ? 's' : ''}.\n\n'
+                    'Total: \$${_total.toStringAsFixed(2)}\n'
+                    'Ref: #${state.booking.id?.substring(0, 8) ?? ''}',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      color: AppColors.mutedText,
+                      height: 1.5,
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        Navigator.of(context).pop(); // back to hotel detail
+                      },
+                      child: Text(
+                        'Done',
+                        style: GoogleFonts.dmSans(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          } else if (state is BookingActionError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error, style: GoogleFonts.dmSans()),
+                backgroundColor: AppColors.errorColor,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          return Stack(
+            children: [
+              Column(
+                children: [
+                  Expanded(
+                    child: CustomScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      slivers: [
+                        _buildSliverAppBar(context, cs, isDark),
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildTitleSection(cs, isDark),
+                                const SizedBox(height: 24),
+                                _buildInfoChips(cs, isDark),
+                                const SizedBox(height: 28),
+                                _buildAvailabilityBanner(cs, isDark),
+                                const SizedBox(height: 28),
+                                _buildAmenitiesSection(cs, isDark),
+                                const SizedBox(height: 28),
+                                _buildNightSelector(cs, isDark),
+                                const SizedBox(height: 28),
+                                if (hotel != null)
+                                  _buildHotelReference(cs, isDark),
+                                if (hotel != null) const SizedBox(height: 28),
+                                _buildPaymentMethodSection(cs, isDark),
+                                const SizedBox(height: 28),
+                                _buildPriceSummary(cs, isDark),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
+                  _buildBottomBar(context, cs, isDark),
+                ],
+              ),
+              if (state is BookingActionLoading)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  child: const Center(child: CircularProgressIndicator()),
                 ),
-              ],
-            ),
-          ),
-          _buildBottomBar(context, cs, isDark),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -125,8 +209,11 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
               color: Colors.black.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: Colors.white, size: 18),
+            child: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
           ),
         ),
       ),
@@ -138,10 +225,11 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
             Image.asset(
               _roomImagePath,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Image.asset(
-                'assets/images/default_room.jpg',
-                fit: BoxFit.cover,
-              ),
+              errorBuilder:
+                  (_, __, ___) => Image.asset(
+                    'assets/images/default_room.jpg',
+                    fit: BoxFit.cover,
+                  ),
             ),
             // Bottom gradient for text readability
             Positioned.fill(
@@ -161,8 +249,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
               bottom: 60,
               left: 20,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: cs.primary,
                   borderRadius: BorderRadius.circular(20),
@@ -224,9 +314,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
-                    color: isDark
-                        ? AppColors.onSurfaceDark
-                        : AppColors.onSurfaceLight,
+                    color:
+                        isDark
+                            ? AppColors.onSurfaceDark
+                            : AppColors.onSurfaceLight,
                     height: 1.15,
                   ),
                 ),
@@ -234,8 +325,11 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                 if (hotel != null)
                   Row(
                     children: [
-                      Icon(Icons.business_rounded,
-                          size: 14, color: AppColors.mutedText),
+                      Icon(
+                        Icons.business_rounded,
+                        size: 14,
+                        color: AppColors.mutedText,
+                      ),
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
@@ -280,9 +374,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
 
   // ── Info Chips ────────────────────────────────────────────────────────────
   Widget _buildInfoChips(ColorScheme cs, bool isDark) {
-    final chipBg = isDark
-        ? AppColors.green900.withValues(alpha: 0.4)
-        : AppColors.green100.withValues(alpha: 0.6);
+    final chipBg =
+        isDark
+            ? AppColors.green900.withValues(alpha: 0.4)
+            : AppColors.green100.withValues(alpha: 0.6);
 
     return Wrap(
       spacing: 10,
@@ -336,7 +431,8 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
       bgColor = Colors.orange.withValues(alpha: 0.12);
       textColor = Colors.orange.shade700;
       icon = Icons.warning_amber_rounded;
-      label = 'Only $available room${available > 1 ? 's' : ''} left — book soon!';
+      label =
+          'Only $available room${available > 1 ? 's' : ''} left — book soon!';
     } else {
       bgColor = Colors.green.withValues(alpha: 0.12);
       textColor = Colors.green.shade700;
@@ -411,9 +507,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.green900.withValues(alpha: 0.35)
-                        : AppColors.green100.withValues(alpha: 0.5),
+                    color:
+                        isDark
+                            ? AppColors.green900.withValues(alpha: 0.35)
+                            : AppColors.green100.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(a.icon, size: 24, color: cs.primary),
@@ -473,9 +570,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                 enabled: _nights > 1,
                 cs: cs,
                 isDark: isDark,
-                onTap: () => setState(() {
-                  if (_nights > 1) _nights--;
-                }),
+                onTap:
+                    () => setState(() {
+                      if (_nights > 1) _nights--;
+                    }),
               ),
               Column(
                 children: [
@@ -484,9 +582,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 32,
                       fontWeight: FontWeight.w800,
-                      color: isDark
-                          ? AppColors.onSurfaceDark
-                          : AppColors.onSurfaceLight,
+                      color:
+                          isDark
+                              ? AppColors.onSurfaceDark
+                              : AppColors.onSurfaceLight,
                     ),
                   ),
                   Text(
@@ -504,9 +603,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                 enabled: _nights < 30,
                 cs: cs,
                 isDark: isDark,
-                onTap: () => setState(() {
-                  if (_nights < 30) _nights++;
-                }),
+                onTap:
+                    () => setState(() {
+                      if (_nights < 30) _nights++;
+                    }),
               ),
             ],
           ),
@@ -523,9 +623,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
         color: isDark ? AppColors.surfaceVariantD : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark
-              ? Colors.grey.shade800
-              : Colors.grey.shade200,
+          color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
         ),
       ),
       child: Row(
@@ -540,12 +638,13 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
               width: 56,
               height: 56,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Image.asset(
-                'assets/images/default_hotel.jpg',
-                width: 56,
-                height: 56,
-                fit: BoxFit.cover,
-              ),
+              errorBuilder:
+                  (_, __, ___) => Image.asset(
+                    'assets/images/default_hotel.jpg',
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
+                  ),
             ),
           ),
           const SizedBox(width: 14),
@@ -558,9 +657,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   style: GoogleFonts.dmSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: isDark
-                        ? AppColors.onSurfaceDark
-                        : AppColors.onSurfaceLight,
+                    color:
+                        isDark
+                            ? AppColors.onSurfaceDark
+                            : AppColors.onSurfaceLight,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -568,8 +668,11 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    Icon(Icons.location_on_rounded,
-                        size: 12, color: AppColors.green500),
+                    Icon(
+                      Icons.location_on_rounded,
+                      size: 12,
+                      color: AppColors.green500,
+                    ),
                     const SizedBox(width: 3),
                     Expanded(
                       child: Text(
@@ -588,21 +691,112 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
           ),
           Row(
             children: [
-              const Icon(Icons.star_rounded, size: 14, color: Color(0xFFF5A623)),
+              const Icon(
+                Icons.star_rounded,
+                size: 14,
+                color: Color(0xFFF5A623),
+              ),
               const SizedBox(width: 3),
               Text(
                 '${hotel!.rating ?? 0.0}',
                 style: GoogleFonts.dmSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: isDark
-                      ? AppColors.onSurfaceDark
-                      : AppColors.onSurfaceLight,
+                  color:
+                      isDark
+                          ? AppColors.onSurfaceDark
+                          : AppColors.onSurfaceLight,
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  // ── Payment Method Section ────────────────────────────────────────────────
+  Widget _buildPaymentMethodSection(ColorScheme cs, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Payment Method',
+          style: GoogleFonts.playfairDisplay(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildPaymentOption(
+                title: 'Stripe',
+                icon: Icons.credit_card_rounded,
+                method: PaymentMethod.stripe,
+                cs: cs,
+                isDark: isDark,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildPaymentOption(
+                title: 'Cash',
+                icon: Icons.money_rounded,
+                method: PaymentMethod.cash,
+                cs: cs,
+                isDark: isDark,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPaymentOption({
+    required String title,
+    required IconData icon,
+    required PaymentMethod method,
+    required ColorScheme cs,
+    required bool isDark,
+  }) {
+    final isSelected = _selectedPaymentMethod == method;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedPaymentMethod = method),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color:
+              isSelected
+                  ? cs.primary.withValues(alpha: 0.1)
+                  : (isDark
+                      ? AppColors.surfaceVariantD
+                      : AppColors.surfaceVariantL),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? cs.primary : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: isSelected ? cs.primary : AppColors.mutedText),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: GoogleFonts.dmSans(
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color:
+                    isSelected
+                        ? cs.primary
+                        : (isDark ? Colors.white : Colors.black87),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -637,8 +831,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
             isDark: isDark,
           ),
           const SizedBox(height: 12),
-          Divider(
-              color: isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+          Divider(color: isDark ? Colors.grey.shade800 : Colors.grey.shade200),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -648,9 +841,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: isDark
-                      ? AppColors.onSurfaceDark
-                      : AppColors.onSurfaceLight,
+                  color:
+                      isDark
+                          ? AppColors.onSurfaceDark
+                          : AppColors.onSurfaceLight,
                 ),
               ),
               Text(
@@ -681,9 +875,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : AppColors.green500.withValues(alpha: 0.1),
+            color:
+                isDark
+                    ? Colors.black.withValues(alpha: 0.3)
+                    : AppColors.green500.withValues(alpha: 0.1),
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
@@ -716,9 +911,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
-                            color: isDark
-                                ? AppColors.onSurfaceDark
-                                : AppColors.onSurfaceLight,
+                            color:
+                                isDark
+                                    ? AppColors.onSurfaceDark
+                                    : AppColors.onSurfaceLight,
                           ),
                         ),
                         TextSpan(
@@ -736,28 +932,44 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
             ),
             const SizedBox(width: 16),
             ElevatedButton(
-              onPressed: isAvailable
-                  ? () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Room booked for $_nights night${_nights > 1 ? 's' : ''}!',
-                            style: GoogleFonts.dmSans(),
-                          ),
-                          backgroundColor: cs.primary,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          margin: const EdgeInsets.all(16),
-                        ),
-                      );
-                    }
-                  : null,
+              onPressed:
+                  isAvailable
+                      ? () {
+                        final userId = AuthCubit.get(context).currentUserId;
+                        if (userId != null) {
+                          final request = BookingRequest(
+                            accommodationId: '3',
+                            amount: _total.round(),
+                            paymentMethod: _selectedPaymentMethod,
+                          );
+                          if (_selectedPaymentMethod == PaymentMethod.stripe) {
+                            BookingCubit.get(
+                              context,
+                            ).createBookingAndPay(userId, request);
+                          } else {
+                            BookingCubit.get(
+                              context,
+                            ).createBooking(userId, request);
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'You must be logged in to book.',
+                                style: GoogleFonts.dmSans(),
+                              ),
+                              backgroundColor: AppColors.errorColor,
+                            ),
+                          );
+                        }
+                      }
+                      : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: cs.primary,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor:
-                    AppColors.mutedText.withValues(alpha: 0.3),
+                disabledBackgroundColor: AppColors.mutedText.withValues(
+                  alpha: 0.3,
+                ),
                 minimumSize: const Size(140, 52),
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 shape: RoundedRectangleBorder(
@@ -848,9 +1060,12 @@ class _StepButton extends StatelessWidget {
         width: 46,
         height: 46,
         decoration: BoxDecoration(
-          color: enabled
-              ? cs.primary
-              : (isDark ? AppColors.surfaceVariantD : AppColors.borderColor),
+          color:
+              enabled
+                  ? cs.primary
+                  : (isDark
+                      ? AppColors.surfaceVariantD
+                      : AppColors.borderColor),
           borderRadius: BorderRadius.circular(14),
         ),
         child: Icon(
@@ -878,15 +1093,18 @@ class _PriceRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style: GoogleFonts.dmSans(
-                fontSize: 13, color: AppColors.mutedText)),
-        Text(value,
-            style: GoogleFonts.dmSans(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
-            )),
+        Text(
+          label,
+          style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.mutedText),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.dmSans(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
+          ),
+        ),
       ],
     );
   }

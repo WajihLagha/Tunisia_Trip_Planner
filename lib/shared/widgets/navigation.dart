@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 /// Creates a slide transition route (from right to left).
-/// Uses generics so the pushed route can return values of type T.
 Route<T> slideRoute<T>(
     Widget page, {
       Duration duration = const Duration(milliseconds: 300),
@@ -26,7 +25,6 @@ Route<T> slideRoute<T>(
 }
 
 /// Push a page with platform-aware animation.
-/// Returns the value pushed route may return (if any).
 Future<T?> navigateTo<T>(BuildContext context, Widget page) {
   final platform = Theme.of(context).platform;
 
@@ -41,7 +39,6 @@ Future<T?> navigateTo<T>(BuildContext context, Widget page) {
 }
 
 /// Push a page and replace the current one (like pushReplacement) with animation.
-/// Useful for flows like splash -> login or login -> home.
 Future<T?> navigateAndReplace<T>(BuildContext context, Widget page) {
   final platform = Theme.of(context).platform;
 

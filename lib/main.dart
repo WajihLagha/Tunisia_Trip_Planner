@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:tunisian_trip_planner/core/notifications/notification_service.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
+import 'package:tunisian_trip_planner/features/admin/admin_home_layout.dart';
+import 'package:tunisian_trip_planner/features/auth/auth_cubit/auth_cubit.dart';
+import 'package:tunisian_trip_planner/features/auth/auth_cubit/auth_states.dart';
 import 'package:tunisian_trip_planner/features/auth/onboarding_screen.dart';
 import 'package:tunisian_trip_planner/features/auth/widgets/login_screen.dart';
 import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_cubit.dart';
@@ -12,9 +15,21 @@ import 'package:tunisian_trip_planner/features/profile/cubit/profile_states.dart
 import 'package:tunisian_trip_planner/shared/network/local/cache_helper.dart';
 import 'package:tunisian_trip_planner/shared/network/remote/dio_helper.dart';
 import 'package:tunisian_trip_planner/shared/widgets/splash_screen.dart';
+import 'package:tunisian_trip_planner/features/bookings/cubit/booking_cubit.dart';
+import 'package:tunisian_trip_planner/features/bookings/repositories/booking_repository.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 
-void main() {
+// Initialize a global instance of AuthCubit
+final authCubit = AuthCubit();
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Stripe with your test publishable key
+  Stripe.publishableKey =
+      'pk_test_51TKM7QHM6rOm7ObP8RRg5JMisYhEnPJRbjdGmYsYmDOu28AgisZW071e0CJCP5tW4XxFFc2YhWbFPS92ZFaiKXIF009Ik8Dq9z';
+  await Stripe.instance.applySettings();
+
   runApp(const MyApp());
 }
 
@@ -52,29 +67,33 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   Future<void> _performInit() async {
+    DioHelper.onTokenRefresh = () => authCubit.getValidAccessToken();
     DioHelper.init();
     await Hive.initFlutter();
     await CacheHelper.init();
     await NotificationService.init();
 
-    // ── Step 2: Retrieve state from cache ────────────────────────────────────
-    final bool onBoardingDone = CacheHelper.getData('onBoarding') == true;
-    final String? token = CacheHelper.getData('token') as String?;
+    // ── Check Auth using PKCE & JWT Decoder ──────────────────────────────────
+    await authCubit.checkExistingAuth();
 
-    // ── Step 3: Determine start widget ───────────────────────────────────────
+    final bool onBoardingDone = CacheHelper.getData('onBoarding') == true;
+
+    // ── Determine start widget ───────────────────────────────────────
     // Condition A: Brand-new user – show onboarding
     if (!onBoardingDone) {
       _startWidget = const OnboardingScreen();
     }
-    // Condition B: Seen intro but not logged in – go to login
-    else if (token == null || token.isEmpty) {
-      _startWidget = LoginScreen();
+    // Condition B: Authenticated successfully
+    else if (authCubit.state is AuthSuccessState) {
+      if (authCubit.isAdmin) {
+        _startWidget = const AdminHomeLayout();
+      } else {
+        _startWidget = const HomeLayout();
+      }
     }
-    // Condition C: Already authenticated – go straight to home
+    // Condition C: Not authenticated
     else {
-      // ── Step 5: Inject token globally into DioHelper ──────────────────────
-      DioHelper.setToken(token);
-      _startWidget = const HomeLayout();
+      _startWidget = const LoginScreen();
     }
   }
 
@@ -102,11 +121,27 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       );
     }
 
-    // ── Step 4: Inject the resolved start widget into MaterialApp ─────────────
+    // Inject the resolved start widget into MaterialApp
     return MultiBlocProvider(
       providers: [
+        BlocProvider.value(value: authCubit),
         BlocProvider(create: (context) => ProfileCubit()),
-        BlocProvider(create: (context) => FavouritesCubit()..loadFavourites()),
+        BlocProvider(
+          create:
+              (context) =>
+                  FavouritesCubit(userId: authCubit.currentUserId)
+                    ..loadFavourites(),
+        ),
+        BlocProvider(
+          create: (context) {
+            final cubit = BookingCubit(BookingRepository());
+            final userId = authCubit.currentUserId;
+            if (userId != null) {
+              cubit.getUserBookings(userId);
+            }
+            return cubit;
+          },
+        ),
       ],
       child: BlocBuilder<ProfileCubit, ProfileStates>(
         builder: (context, state) {

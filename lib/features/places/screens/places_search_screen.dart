@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
+import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_cubit.dart';
+import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_states.dart';
 import 'package:tunisian_trip_planner/features/places/cubit/places_cubit.dart';
 import 'package:tunisian_trip_planner/features/places/cubit/places_states.dart';
 import 'package:tunisian_trip_planner/features/places/models/places_response.dart';
@@ -24,7 +26,8 @@ class _PlacesSearchScreenView extends StatefulWidget {
   const _PlacesSearchScreenView();
 
   @override
-  State<_PlacesSearchScreenView> createState() => _PlacesSearchScreenViewState();
+  State<_PlacesSearchScreenView> createState() =>
+      _PlacesSearchScreenViewState();
 }
 
 class _PlacesSearchScreenViewState extends State<_PlacesSearchScreenView> {
@@ -71,7 +74,8 @@ class _PlacesSearchScreenViewState extends State<_PlacesSearchScreenView> {
           height: 44,
           margin: const EdgeInsets.only(right: 16),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceVariantD : cs.surfaceContainerHighest,
+            color:
+                isDark ? AppColors.surfaceVariantD : cs.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextField(
@@ -85,18 +89,30 @@ class _PlacesSearchScreenViewState extends State<_PlacesSearchScreenView> {
                 fontSize: 15,
                 color: cs.onSurface.withValues(alpha: 0.5),
               ),
-              prefixIcon: Icon(Icons.search_rounded, color: cs.primary, size: 20),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: Icon(Icons.clear_rounded, size: 20, color: cs.onSurface),
-                      onPressed: () {
-                        _searchController.clear();
-                        _onSearchChanged('');
-                      },
-                    )
-                  : null,
+              prefixIcon: Icon(
+                Icons.search_rounded,
+                color: cs.primary,
+                size: 20,
+              ),
+              suffixIcon:
+                  _searchController.text.isNotEmpty
+                      ? IconButton(
+                        icon: Icon(
+                          Icons.clear_rounded,
+                          size: 20,
+                          color: cs.onSurface,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                          _onSearchChanged('');
+                        },
+                      )
+                      : null,
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
             ),
           ),
         ),
@@ -118,7 +134,10 @@ class _PlacesSearchScreenViewState extends State<_PlacesSearchScreenView> {
 
           if (state is PlacesErrorState) {
             return Center(
-              child: Text(state.message, style: TextStyle(color: AppColors.errorColor)),
+              child: Text(
+                state.message,
+                style: TextStyle(color: AppColors.errorColor),
+              ),
             );
           }
 
@@ -127,7 +146,8 @@ class _PlacesSearchScreenViewState extends State<_PlacesSearchScreenView> {
               return _buildEmptyState(
                 icon: Icons.search_off_rounded,
                 title: 'No Results Found',
-                message: 'We couldn\'t find any places matching "${_searchController.text}".',
+                message:
+                    'We couldn\'t find any places matching "${_searchController.text}".',
                 colorScheme: cs,
               );
             }
@@ -226,7 +246,10 @@ class _PlaceHorizontalCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.05),
+              color:
+                  isDark
+                      ? Colors.black26
+                      : Colors.black.withValues(alpha: 0.05),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -251,7 +274,7 @@ class _PlaceHorizontalCard extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
             ),
-            
+
             // Details
             Expanded(
               child: Padding(
@@ -270,11 +293,15 @@ class _PlaceHorizontalCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
-                    
+
                     // Location
                     Row(
                       children: [
-                        Icon(Icons.location_on_rounded, size: 14, color: cs.primary),
+                        Icon(
+                          Icons.location_on_rounded,
+                          size: 14,
+                          color: cs.primary,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -289,9 +316,9 @@ class _PlaceHorizontalCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    
+
                     const Spacer(),
-                    
+
                     // Rating and Category
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -299,7 +326,11 @@ class _PlaceHorizontalCard extends StatelessWidget {
                         // Rating
                         Row(
                           children: [
-                            const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
+                            const Icon(
+                              Icons.star_rounded,
+                              size: 16,
+                              color: Colors.amber,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               place.rating?.toStringAsFixed(1) ?? 'N/A',
@@ -317,24 +348,58 @@ class _PlaceHorizontalCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        
+
                         // Category Badge
                         if (place.category != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: cs.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              place.category!.name.toUpperCase(),
-                              style: GoogleFonts.dmSans(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: cs.primary,
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: cs.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                place.category!.name.toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: cs.primary,
+                                ),
                               ),
                             ),
                           ),
+                        const SizedBox(width: 8),
+                        BlocBuilder<FavouritesCubit, FavouritesStates>(
+                          builder: (context, state) {
+                            final id = place.id;
+                            final isFav =
+                                id != null &&
+                                FavouritesCubit.get(
+                                  context,
+                                ).isPlaceFavourite(id);
+
+                            return GestureDetector(
+                              onTap:
+                                  id == null
+                                      ? null
+                                      : () => FavouritesCubit.get(
+                                        context,
+                                      ).togglePlaceFavourite(id),
+                              child: Icon(
+                                isFav
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                size: 18,
+                                color: isFav ? Colors.red : cs.primary,
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ],

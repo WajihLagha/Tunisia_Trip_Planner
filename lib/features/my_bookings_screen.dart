@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
+import 'package:tunisian_trip_planner/features/auth/auth_cubit/auth_cubit.dart';
+import 'package:tunisian_trip_planner/features/bookings/booking_detail_screen.dart';
+import 'package:tunisian_trip_planner/features/bookings/cubit/booking_cubit.dart';
+import 'package:tunisian_trip_planner/features/bookings/cubit/booking_states.dart';
+import 'package:tunisian_trip_planner/features/bookings/enums/booking_state.dart'
+    as model_state;
+import 'package:tunisian_trip_planner/features/bookings/models/booking_dto.dart';
+import 'package:tunisian_trip_planner/shared/widgets/navigation.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Model
@@ -8,52 +17,28 @@ import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 enum BookingType { car, hotel, trip }
 
 class BookingModel {
+  final String id;
   final String title;
   final String date;
   final String status;
   final Color statusColor;
   final BookingType type;
   final String refNumber;
+  final num? amount;
+  final model_state.BookingState? state;
 
   const BookingModel({
+    required this.id,
     required this.title,
     required this.date,
     required this.status,
     required this.statusColor,
     required this.type,
     required this.refNumber,
+    this.amount,
+    this.state,
   });
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Hardcoded test data  (no nulls anywhere)
-// ─────────────────────────────────────────────────────────────────────────────
-const List<BookingModel> _mockBookings = [
-  BookingModel(
-    title: 'Car Rental – Clio',
-    date: '12 Oct, 10:00 AM',
-    status: 'PENDING',
-    statusColor: Color(0xFFFF9800),
-    type: BookingType.car,
-    refNumber: '#TR-88291',
-  ),
-  BookingModel(
-    title: 'Hotel Majestic Tunis',
-    date: '12 Oct – 15 Oct',
-    status: 'CONFIRMED',
-    statusColor: Color(0xFF4CAF50),
-    type: BookingType.hotel,
-    refNumber: '#HT-12345',
-  ),
-  BookingModel(
-    title: 'Sahara Desert Trip',
-    date: '20 Nov – 22 Nov',
-    status: 'CANCELLED',
-    statusColor: Color(0xFFF44336),
-    type: BookingType.trip,
-    refNumber: '#TR-99120',
-  ),
-];
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Screen
@@ -68,25 +53,73 @@ class MyBookingScreen extends StatefulWidget {
 class _MyBookingScreenState extends State<MyBookingScreen> {
   int _selectedIndex = 0;
 
-  List<BookingModel> get _filtered {
+  @override
+  void initState() {
+    super.initState();
+    final userId = AuthCubit.get(context).currentUserId;
+    if (userId != null) {
+      BookingCubit.get(context).getUserBookings(userId);
+    }
+  }
+
+  List<BookingModel> _filtered(List<BookingModel> bookings) {
     switch (_selectedIndex) {
       case 0:
-        return _mockBookings
-            .where((b) => b.status == 'PENDING' || b.status == 'CONFIRMED')
+        return bookings
+            .where(
+              (b) =>
+                  b.state == model_state.BookingState.pending ||
+                  b.state == model_state.BookingState.inPayment ||
+                  b.state == model_state.BookingState.confirmed,
+            )
             .toList();
       case 1:
-        return _mockBookings.where((b) => b.status == 'CONFIRMED').toList();
+        return bookings
+            .where((b) => b.state == model_state.BookingState.confirmed)
+            .toList();
       case 2:
-        return _mockBookings.where((b) => b.status == 'CANCELLED').toList();
+        return bookings
+            .where((b) => b.state == model_state.BookingState.cancelled)
+            .toList();
       default:
-        return List<BookingModel>.from(_mockBookings);
+        return List<BookingModel>.from(bookings);
     }
+  }
+
+  Color _getStatusColor(model_state.BookingState? state) {
+    if (state == model_state.BookingState.confirmed) {
+      return const Color(0xFF4CAF50);
+    }
+    if (state == model_state.BookingState.cancelled) {
+      return const Color(0xFFF44336);
+    }
+    if (state == model_state.BookingState.inPayment) {
+      return const Color(0xFF2196F3);
+    }
+    return const Color(0xFFFF9800);
+  }
+
+  BookingModel _mapToBookingModel(BookingDto dto) {
+    return BookingModel(
+      id: dto.id ?? '',
+      title:
+          dto.accommodationId != null
+              ? 'Accommodation Booking'
+              : (dto.transportId != null ? 'Transport Booking' : 'Booking'),
+      date: dto.createdDate ?? 'Unknown date',
+      status: dto.state?.value ?? 'PENDING',
+      statusColor: _getStatusColor(dto.state),
+      type: dto.accommodationId != null ? BookingType.hotel : BookingType.car,
+      refNumber:
+          '#${dto.id != null ? dto.id!.substring(0, dto.id!.length.clamp(0, 8)) : 'Unknown'}',
+      amount: dto.amount,
+      state: dto.state,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bookings = _filtered;
 
     return Scaffold(
       backgroundColor:
@@ -122,9 +155,10 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
               height: 48,
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.surfaceVariantD
-                    : const Color(0xFFF0F4F3),
+                color:
+                    isDark
+                        ? AppColors.surfaceVariantD
+                        : const Color(0xFFF0F4F3),
                 borderRadius: BorderRadius.circular(28),
               ),
               child: Row(
@@ -154,15 +188,38 @@ class _MyBookingScreenState extends State<MyBookingScreen> {
           const SizedBox(height: 20),
           // ── Content area ──────────────────────────────────────────────────
           Expanded(
-            child: bookings.isEmpty
-                ? _EmptyState(isDark: isDark)
-                : ListView.separated(
+            child: BlocBuilder<BookingCubit, BookingState>(
+              builder: (context, state) {
+                final cachedBookings = BookingCubit.get(context).bookings;
+                final sourceBookings =
+                    state is BookingLoaded ? state.bookings : cachedBookings;
+
+                if (state is BookingLoading && cachedBookings.isEmpty) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (state is BookingError && cachedBookings.isEmpty) {
+                  return Center(child: Text('Error: ${state.error}'));
+                } else if (sourceBookings.isNotEmpty ||
+                    state is BookingLoaded) {
+                  final allBookings =
+                      sourceBookings.map(_mapToBookingModel).toList();
+                  final bookings = _filtered(allBookings);
+
+                  if (bookings.isEmpty) {
+                    return _EmptyState(isDark: isDark);
+                  }
+
+                  return ListView.separated(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
                     itemCount: bookings.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 16),
-                    itemBuilder: (_, i) =>
-                        _BookingCard(booking: bookings[i], isDark: isDark),
-                  ),
+                    itemBuilder:
+                        (_, i) =>
+                            _BookingCard(booking: bookings[i], isDark: isDark),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
           ),
         ],
       ),
@@ -197,15 +254,16 @@ class _TabPill extends StatelessWidget {
           decoration: BoxDecoration(
             color: selected ? const Color(0xFF00E6C3) : Colors.transparent,
             borderRadius: BorderRadius.circular(24),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF00E6C3).withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
+            boxShadow:
+                selected
+                    ? [
+                      BoxShadow(
+                        color: const Color(0xFF00E6C3).withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                    : null,
           ),
           alignment: Alignment.center,
           child: Text(
@@ -213,9 +271,10 @@ class _TabPill extends StatelessWidget {
             style: GoogleFonts.dmSans(
               fontSize: 13,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected
-                  ? Colors.black87
-                  : (isDark ? Colors.white60 : Colors.black54),
+              color:
+                  selected
+                      ? Colors.black87
+                      : (isDark ? Colors.white60 : Colors.black54),
             ),
           ),
         ),
@@ -305,9 +364,10 @@ class _BookingCard extends StatelessWidget {
                       style: GoogleFonts.dmSans(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: isDark
-                            ? AppColors.onSurfaceDark
-                            : AppColors.onSurfaceLight,
+                        color:
+                            isDark
+                                ? AppColors.onSurfaceDark
+                                : AppColors.onSurfaceLight,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -337,8 +397,10 @@ class _BookingCard extends StatelessWidget {
               const SizedBox(width: 8),
               // Status badge
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: booking.statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
@@ -388,14 +450,32 @@ class _BookingCard extends StatelessWidget {
                 ),
               ),
               GestureDetector(
-                onTap: () {},
+                onTap:
+                    () => navigateTo(
+                      context,
+                      BookingDetailScreen(
+                        booking: BookingDetailArgs(
+                          id: booking.id,
+                          title: booking.title,
+                          refNumber: booking.refNumber,
+                          date: booking.date,
+                          status: booking.status,
+                          statusColor: booking.statusColor,
+                          amount: booking.amount,
+                          state: booking.state,
+                        ),
+                      ),
+                    ),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 18, vertical: 8),
+                    horizontal: 18,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.green900.withValues(alpha: 0.4)
-                        : AppColors.green100.withValues(alpha: 0.5),
+                    color:
+                        isDark
+                            ? AppColors.green900.withValues(alpha: 0.4)
+                            : AppColors.green100.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -445,14 +525,16 @@ class _EmptyState extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.green900.withValues(alpha: 0.4)
-                    : AppColors.green100.withValues(alpha: 0.6),
+                color:
+                    isDark
+                        ? AppColors.green900.withValues(alpha: 0.4)
+                        : AppColors.green100.withValues(alpha: 0.6),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isDark
-                      ? AppColors.green700.withValues(alpha: 0.5)
-                      : AppColors.green300.withValues(alpha: 0.8),
+                  color:
+                      isDark
+                          ? AppColors.green700.withValues(alpha: 0.5)
+                          : AppColors.green300.withValues(alpha: 0.8),
                   width: 2,
                 ),
               ),
@@ -476,9 +558,10 @@ class _EmptyState extends StatelessWidget {
               "You don't have any bookings\nin this category.",
               style: GoogleFonts.dmSans(
                 fontSize: 14,
-                color: isDark
-                    ? AppColors.onSurfaceDark.withValues(alpha: 0.6)
-                    : AppColors.onSurfaceLight.withValues(alpha: 0.6),
+                color:
+                    isDark
+                        ? AppColors.onSurfaceDark.withValues(alpha: 0.6)
+                        : AppColors.onSurfaceLight.withValues(alpha: 0.6),
                 height: 1.6,
               ),
               textAlign: TextAlign.center,

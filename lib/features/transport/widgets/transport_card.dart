@@ -53,7 +53,7 @@ class TransportCard extends StatelessWidget {
                 ),
               ),
               // Featured badge
-              if (transport.isFeatured)
+              if (transport.stripeOnboarded)
                 Positioned(
                   top: 12,
                   left: 12,
@@ -109,7 +109,7 @@ class TransportCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      transport.rating.toString(),
+                      transport.averageRating.toString(),
                       style: GoogleFonts.dmSans(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -118,7 +118,7 @@ class TransportCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '(${transport.reviewCount} reviews)',
+                      '(${transport.totalReviews} reviews)',
                       style: GoogleFonts.dmSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
@@ -140,7 +140,7 @@ class TransportCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        transport.address,
+                        transport.address ?? 'No address provided',
                         style: GoogleFonts.dmSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w400,

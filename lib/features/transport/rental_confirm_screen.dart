@@ -1,8 +1,15 @@
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tunisian_trip_planner/core/theme/app_theme.dart';
 import 'package:tunisian_trip_planner/features/transport/models/vehicle_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tunisian_trip_planner/features/auth/auth_cubit/auth_cubit.dart';
+import 'package:tunisian_trip_planner/features/bookings/cubit/booking_cubit.dart';
+import 'package:tunisian_trip_planner/features/bookings/cubit/booking_states.dart';
+import 'package:tunisian_trip_planner/features/bookings/models/booking_request.dart';
+import 'package:tunisian_trip_planner/features/bookings/enums/payment_method.dart';
 
 class RentalConfirmScreen extends StatefulWidget {
   final VehicleModel vehicle;
@@ -19,8 +26,10 @@ class RentalConfirmScreen extends StatefulWidget {
 class _RentalConfirmScreenState extends State<RentalConfirmScreen> {
   int _rentalDays = 1;
   bool _isUploaded = false;
+  PaymentMethod _selectedPaymentMethod = PaymentMethod.stripe;
+  final ImagePicker _imagePicker = ImagePicker();
 
-  double get _totalPrice => (widget.vehicle.vehiclePrice ?? 0) * _rentalDays;
+  double get _totalPrice => widget.vehicle.vehiclePrice * _rentalDays;
 
   void _incrementDays() {
     setState(() {
@@ -34,24 +43,26 @@ class _RentalConfirmScreenState extends State<RentalConfirmScreen> {
     });
   }
 
-  void _simulateUpload() {
-    // Simulates a file pick — in production use image_picker / file_picker
-    setState(() {
-      _isUploaded = true;
-    });
+  Future<void> _pickLicense() async {
+    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (!mounted) return;
+    if (pickedFile != null) {
+      setState(() {
+        _isUploaded = true;
+      });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Driver\'s license uploaded successfully',
-          style: GoogleFonts.dmSans(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Driver\'s license uploaded successfully',
+            style: GoogleFonts.dmSans(),
+          ),
+          backgroundColor: AppColors.primary,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 100, left: 16, right: 16),
         ),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
+      );
+    }
   }
 
   void _confirmRental() {
@@ -64,60 +75,35 @@ class _RentalConfirmScreenState extends State<RentalConfirmScreen> {
           ),
           backgroundColor: AppColors.errorColor,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.all(16),
+          margin: const EdgeInsets.only(bottom: 100, left: 16, right: 16),
         ),
       );
       return;
     }
 
-    // TODO: Submit rental via API
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        final cs = Theme.of(ctx).colorScheme;
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
-            children: [
-              Icon(Icons.check_circle_rounded, color: cs.primary, size: 28),
-              const SizedBox(width: 10),
-              Text(
-                'Rental Confirmed!',
-                style: GoogleFonts.playfairDisplay(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          content: Text(
-            'Your ${widget.vehicle.vehicleModel} has been booked for '
-            '$_rentalDays day${_rentalDays > 1 ? 's' : ''}.\n\n'
-            'Total: \$${_totalPrice.toStringAsFixed(2)}',
-            style: GoogleFonts.dmSans(
-              fontSize: 14,
-              color: AppColors.mutedText,
-              height: 1.5,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                Navigator.of(context).pop(); // back to car detail
-              },
-              child: Text(
-                'Done',
-                style: GoogleFonts.dmSans(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+    final userId = AuthCubit.get(context).currentUserId;
+    if (userId != null) {
+      final request = BookingRequest(
+        transportId: widget.vehicle.id.toString(),
+        amount: _totalPrice,
+        paymentMethod: _selectedPaymentMethod,
+      );
+
+      if (_selectedPaymentMethod == PaymentMethod.stripe) {
+        BookingCubit.get(context).createBookingAndPay(userId, request);
+      } else {
+        BookingCubit.get(context).createBooking(userId, request);
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('You must be logged in to book.', style: GoogleFonts.dmSans()),
+          backgroundColor: AppColors.errorColor,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 100, left: 16, right: 16),
+        ),
+      );
+    }
   }
 
   @override
@@ -154,10 +140,72 @@ class _RentalConfirmScreenState extends State<RentalConfirmScreen> {
         ),
       ),
 
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
+      body: BlocConsumer<BookingCubit, BookingState>(
+        listener: (context, state) {
+          if (state is BookingActionSuccess) {
+            showDialog(
+              context: context,
+              builder: (ctx) {
+                final cs = Theme.of(ctx).colorScheme;
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  title: Row(
+                    children: [
+                      Icon(Icons.check_circle_rounded, color: cs.primary, size: 28),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Rental Confirmed!',
+                        style: GoogleFonts.playfairDisplay(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  content: Text(
+                    'Your ${widget.vehicle.vehicleModel} has been booked for '
+                    '$_rentalDays day${_rentalDays > 1 ? 's' : ''}.\n\n'
+                    'Total: \$${_totalPrice.toStringAsFixed(2)}\n'
+                    'Ref: #${state.booking.id?.substring(0, 8) ?? ''}',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      color: AppColors.mutedText,
+                      height: 1.5,
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        Navigator.of(context).pop(); // back to car detail
+                      },
+                      child: Text(
+                        'Done',
+                        style: GoogleFonts.dmSans(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          } else if (state is BookingActionError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error, style: GoogleFonts.dmSans()),
+                backgroundColor: AppColors.errorColor,
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.only(bottom: 100, left: 16, right: 16),
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          return Stack(
+            children: [
+              Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,6 +220,17 @@ class _RentalConfirmScreenState extends State<RentalConfirmScreen> {
                   ),
                   const SizedBox(height: 16),
                   _buildLicenseUpload(cs, isDark),
+
+                  const SizedBox(height: 32),
+
+                  // ── Payment Method Section ─────────────
+                  _buildSectionHeader(
+                    icon: Icons.payment_outlined,
+                    title: 'Payment Method',
+                    cs: cs,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildPaymentMethodSelector(cs, isDark),
 
                   const SizedBox(height: 32),
 
@@ -194,6 +253,15 @@ class _RentalConfirmScreenState extends State<RentalConfirmScreen> {
           _buildBottomBar(cs, isDark),
         ],
       ),
+      if (state is BookingActionLoading)
+        Container(
+          color: Colors.black.withValues(alpha: 0.3),
+          child: const Center(child: CircularProgressIndicator()),
+        ),
+      ],
+    );
+  },
+),
     );
   }
 
@@ -222,7 +290,7 @@ class _RentalConfirmScreenState extends State<RentalConfirmScreen> {
   // ── License Upload Area ─────────────────────────────────
   Widget _buildLicenseUpload(ColorScheme cs, bool isDark) {
     return GestureDetector(
-      onTap: _simulateUpload,
+      onTap: _pickLicense,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 36),
@@ -304,6 +372,74 @@ class _RentalConfirmScreenState extends State<RentalConfirmScreen> {
     );
   }
 
+  // ── Payment Method Selector ──────────────────────────────
+  Widget _buildPaymentMethodSelector(ColorScheme cs, bool isDark) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildPaymentOption(
+            title: 'Stripe',
+            icon: Icons.credit_card_rounded,
+            method: PaymentMethod.stripe,
+            cs: cs,
+            isDark: isDark,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildPaymentOption(
+            title: 'Cash',
+            icon: Icons.money_rounded,
+            method: PaymentMethod.cash,
+            cs: cs,
+            isDark: isDark,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPaymentOption({
+    required String title,
+    required IconData icon,
+    required PaymentMethod method,
+    required ColorScheme cs,
+    required bool isDark,
+  }) {
+    final isSelected = _selectedPaymentMethod == method;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedPaymentMethod = method),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? cs.primary.withValues(alpha: 0.1)
+              : (isDark ? AppColors.surfaceVariantD : AppColors.surfaceVariantL),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? cs.primary : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: isSelected ? cs.primary : AppColors.mutedText),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: GoogleFonts.dmSans(
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected
+                    ? cs.primary
+                    : (isDark ? Colors.white : Colors.black87),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ── Rental Summary Card ─────────────────────────────────
   Widget _buildRentalSummary(ColorScheme cs, bool isDark) {
     return Container(
@@ -354,7 +490,7 @@ class _RentalConfirmScreenState extends State<RentalConfirmScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${widget.vehicle.vehicleType} • ${widget.vehicle.vehicleYear ?? ''}',
+                      '${widget.vehicle.vehicleType} • ${widget.vehicle.vehicleYear}',
                       style: GoogleFonts.dmSans(
                         fontSize: 12,
                         color: AppColors.mutedText,
@@ -467,7 +603,7 @@ class _RentalConfirmScreenState extends State<RentalConfirmScreen> {
           // Price breakdown
           _buildPriceRow(
             'Price per day',
-            '\$${widget.vehicle.vehiclePrice?.toStringAsFixed(2) ?? '0.00'}',
+            '\$${widget.vehicle.vehiclePrice.toStringAsFixed(2)}',
             cs,
             isBold: false,
           ),

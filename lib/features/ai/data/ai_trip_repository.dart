@@ -2,14 +2,14 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:tunisian_trip_planner/features/ai/models/ai_itinerary.dart';
 import 'package:tunisian_trip_planner/features/ai/models/ai_plan_request.dart';
+import 'package:tunisian_trip_planner/shared/network/remote/end_points.dart';
 
 class AiTripRepository {
-  static const String _baseUrl = 'http://10.0.2.2:8080'; // FastAPI service
   static const String _planEndpoint = '/api/plan';
 
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: _baseUrl,
+      baseUrl: EndPoints.apiOrigin,
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 60),
       headers: {'Content-Type': 'application/json'},

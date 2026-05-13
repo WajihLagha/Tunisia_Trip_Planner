@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tunisian_trip_planner/features/accommodation/cubit/accommodation_states.dart';
+import 'package:tunisian_trip_planner/features/accommodation/data/mock_accommodation_data.dart';
 import 'package:tunisian_trip_planner/features/accommodation/enums/accommodation_type.dart';
 import 'package:tunisian_trip_planner/features/accommodation/models/accommodation.dart';
 import 'package:tunisian_trip_planner/features/accommodation/models/room.dart';
@@ -44,15 +45,19 @@ class AccommodationCubit extends Cubit<AccommodationStates> {
       }
 
       final accommodations =
-          rawList.map((e) => AccommodationDto.fromJson(e as Map<String, dynamic>)).toList();
+          rawList
+              .map((e) => AccommodationDto.fromJson(e as Map<String, dynamic>))
+              .toList();
 
-      emit(AccommodationLoadedState(
-        accommodations: accommodations,
-        filteredAccommodations: accommodations,
-      ));
+      emit(
+        AccommodationLoadedState(
+          accommodations: accommodations,
+          filteredAccommodations: accommodations,
+        ),
+      );
     } catch (e) {
       debugPrint('[AccommodationCubit] loadAccommodations error: $e');
-      emit(AccommodationErrorState('Failed to load accommodations: ${e.toString()}'));
+      _emitMockAccommodations();
     }
   }
 
@@ -63,24 +68,33 @@ class AccommodationCubit extends Cubit<AccommodationStates> {
       selectedType = type;
 
       if (type == null) {
-        emit(AccommodationLoadedState(
-          accommodations: currentState.accommodations,
-          filteredAccommodations: currentState.accommodations,
-        ));
+        emit(
+          AccommodationLoadedState(
+            accommodations: currentState.accommodations,
+            filteredAccommodations: currentState.accommodations,
+          ),
+        );
       } else {
-        final filtered = currentState.accommodations
-            .where((acc) => acc.accommodationType == type)
-            .toList();
-        emit(AccommodationLoadedState(
-          accommodations: currentState.accommodations,
-          filteredAccommodations: filtered,
-        ));
+        final filtered =
+            currentState.accommodations
+                .where((acc) => acc.accommodationType == type)
+                .toList();
+        emit(
+          AccommodationLoadedState(
+            accommodations: currentState.accommodations,
+            filteredAccommodations: filtered,
+          ),
+        );
       }
     }
   }
 
   // ── Search via API: GET /api-v1/accommodations/search?keyword=... ─────────
-  Future<void> searchAccommodations(String keyword, {int page = 0, int size = 20}) async {
+  Future<void> searchAccommodations(
+    String keyword, {
+    int page = 0,
+    int size = 20,
+  }) async {
     if (keyword.trim().isEmpty) {
       emit(AccommodationSearchLoadedState(filteredAccommodations: []));
       return;
@@ -105,12 +119,37 @@ class AccommodationCubit extends Cubit<AccommodationStates> {
       }
 
       final results =
-          rawList.map((e) => AccommodationDto.fromJson(e as Map<String, dynamic>)).toList();
+          rawList
+              .map((e) => AccommodationDto.fromJson(e as Map<String, dynamic>))
+              .toList();
 
       emit(AccommodationSearchLoadedState(filteredAccommodations: results));
     } catch (e) {
       debugPrint('[AccommodationCubit] searchAccommodations error: $e');
-      emit(AccommodationErrorState('Search failed: ${e.toString()}'));
+      final keywordLower = keyword.trim().toLowerCase();
+      final results =
+          MockAccommodationData.accommodations.where((accommodation) {
+        return [
+          accommodation.name,
+          accommodation.city,
+          accommodation.state,
+          accommodation.address,
+          accommodation.description,
+        ].whereType<String>().any(
+              (value) => value.toLowerCase().contains(keywordLower),
+            );
+      }).toList();
+      emit(AccommodationSearchLoadedState(filteredAccommodations: results));
     }
+  }
+
+  void _emitMockAccommodations() {
+    final accommodations = MockAccommodationData.accommodations;
+    emit(
+      AccommodationLoadedState(
+        accommodations: accommodations,
+        filteredAccommodations: accommodations,
+      ),
+    );
   }
 }

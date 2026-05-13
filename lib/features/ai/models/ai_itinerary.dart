@@ -6,7 +6,8 @@ class AiDayPlan {
 
   factory AiDayPlan.fromJson(Map<String, dynamic> json) => AiDayPlan(
         day: (json['day'] as num?)?.toInt() ?? 0,
-        places: (json['places'] as List<dynamic>?)
+        places:
+            (json['places'] as List<dynamic>?)
                 ?.map((e) => e.toString())
                 .toList() ??
             [],
@@ -36,15 +37,16 @@ class AiItinerary {
   });
 
   factory AiItinerary.fromJson(Map<String, dynamic> json) {
-    // Handle both structured JSON and plain string fallback
     final rawDays = json['days'];
     List<AiDayPlan> parsedDays = [];
+
     if (rawDays is List) {
       parsedDays = rawDays
-          .whereType<Map<String, dynamic>>()
-          .map((d) => AiDayPlan.fromJson(d))
+          .whereType<Map>()
+          .map((d) => AiDayPlan.fromJson(Map<String, dynamic>.from(d)))
           .toList();
     }
+
     return AiItinerary(
       title: json['title'] as String?,
       summary: json['summary'] as String?,
@@ -55,8 +57,6 @@ class AiItinerary {
     );
   }
 
-  /// Builds an AiItinerary from a raw plain-text AI response when the
-  /// backend returns a simple string instead of structured JSON.
   factory AiItinerary.fromPlainText(String text, int tripLength) {
     final lines = text.split('\n').where((l) => l.trim().isNotEmpty).toList();
     final days = <AiDayPlan>[];
@@ -65,53 +65,55 @@ class AiItinerary {
     List<String> currentPlaces = [];
 
     for (final line in lines) {
-      final dayMatch = RegExp(r'Day\s*(\d+)', caseSensitive: false).firstMatch(line);
+      final dayMatch =
+          RegExp(r'Day\s*(\d+)', caseSensitive: false).firstMatch(line);
+
       if (dayMatch != null) {
         if (dayNum > 0 && currentPlaces.isNotEmpty) {
           days.add(AiDayPlan(day: dayNum, places: List.from(currentPlaces)));
         }
+
         dayNum = int.parse(dayMatch.group(1)!);
         currentPlaces = [];
-        // parse places from same line after "Day N"
+
         final afterDay = line.substring(dayMatch.end).replaceAll(':', '').trim();
         if (afterDay.isNotEmpty) {
-          currentPlaces.addAll(afterDay.split(RegExp(r'[,→➜]')).map((s) => s.trim()).where((s) => s.isNotEmpty));
+          currentPlaces.addAll(_splitPlacePath(afterDay));
         }
       } else if (dayNum > 0) {
-        currentPlaces.addAll(line.split(RegExp(r'[,→➜•\-]')).map((s) => s.trim()).where((s) => s.isNotEmpty));
+        currentPlaces.addAll(_splitPlacePath(line));
       }
     }
+
     if (dayNum > 0 && currentPlaces.isNotEmpty) {
       days.add(AiDayPlan(day: dayNum, places: currentPlaces));
     }
 
     return AiItinerary(
       title: 'Your Tunisia Itinerary',
-      summary: text.length > 200 ? '${text.substring(0, 200)}…' : text,
+      summary: text.length > 200 ? '${text.substring(0, 200)}...' : text,
       totalDays: tripLength,
       days: days,
     );
   }
 
-  /// Parses the backend's raw map response: {"day1": "Place A -> Place B", "day2": "..."}
   factory AiItinerary.fromRawMap(Map<String, dynamic> raw) {
-    // Sort keys so day1, day2... appear in order
-    final keys = raw.keys.toList()
+    final dayKeys = raw.keys
+        .where((key) => RegExp(r'day\s*\d+', caseSensitive: false).hasMatch(key))
+        .toList()
       ..sort((a, b) {
         final numA = int.tryParse(a.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
         final numB = int.tryParse(b.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
         return numA.compareTo(numB);
       });
 
+    final keys = dayKeys.isNotEmpty ? dayKeys : raw.keys.toList();
     final days = keys.asMap().entries.map((entry) {
-      final dayNum = entry.key + 1;
+      final dayNum =
+          int.tryParse(entry.value.replaceAll(RegExp(r'[^0-9]'), '')) ??
+          entry.key + 1;
       final rawPath = raw[entry.value].toString();
-      final places = rawPath
-          .split(' -> ')
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .toList();
-      return AiDayPlan(day: dayNum, places: places);
+      return AiDayPlan(day: dayNum, places: _splitPlacePath(rawPath));
     }).toList();
 
     return AiItinerary(
@@ -120,5 +122,14 @@ class AiItinerary {
       totalDays: days.length,
       days: days,
     );
+  }
+
+  static List<String> _splitPlacePath(String text) {
+    return text
+        .replaceFirst(RegExp(r'^[-*\s]+'), '')
+        .split(RegExp(r'\s*(?:->|,|;|\|)\s*'))
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
   }
 }

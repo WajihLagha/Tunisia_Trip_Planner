@@ -47,7 +47,7 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final hasCoords =
         (place.latitude != null && place.longitude != null) &&
-            (place.latitude != 0.0 || place.longitude != 0.0);
+        (place.latitude != 0.0 || place.longitude != 0.0);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -58,7 +58,8 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
           SliverAppBar(
             expandedHeight: 320,
             pinned: true,
-            backgroundColor: isDark ? AppColors.surfaceDark : AppColors.green700,
+            backgroundColor:
+                isDark ? AppColors.surfaceDark : AppColors.green700,
             elevation: 0,
             leading: GestureDetector(
               onTap: () => Navigator.pop(context),
@@ -73,8 +74,11 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                         color: Colors.black.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white, size: 18),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                     ),
                   ),
                 ),
@@ -85,15 +89,17 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                 padding: const EdgeInsets.only(right: 12),
                 child: BlocBuilder<FavouritesCubit, FavouritesStates>(
                   builder: (context, state) {
-                    final isFav = state is FavouritesLoaded &&
-                        state.favouritePlaceIds.contains(place.id);
+                    final placeId = place.id;
+                    final isFav =
+                        placeId != null &&
+                        FavouritesCubit.get(context).isPlaceFavourite(placeId);
                     return GestureDetector(
-                      onTap: () {
-                        if (place.id != null) {
-                          FavouritesCubit.get(context)
-                              .togglePlaceFavourite(place.id!);
-                        }
-                      },
+                      onTap:
+                          placeId == null
+                              ? null
+                              : () => FavouritesCubit.get(
+                                context,
+                              ).togglePlaceFavourite(placeId),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: BackdropFilter(
@@ -138,10 +144,7 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black54,
-                          ],
+                          colors: [Colors.transparent, Colors.black54],
                           stops: [0.5, 1.0],
                         ),
                       ),
@@ -163,7 +166,9 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                             filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 5),
+                                horizontal: 12,
+                                vertical: 5,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(20),
@@ -198,8 +203,11 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                         // Location
                         Row(
                           children: [
-                            const Icon(Icons.location_on_rounded,
-                                color: Colors.white70, size: 14),
+                            const Icon(
+                              Icons.location_on_rounded,
+                              color: Colors.white70,
+                              size: 14,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               '${place.cityName}, ${place.stateName}',
@@ -230,15 +238,20 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                       // Rating
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.amber.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.star_rounded,
-                                color: Colors.amber, size: 20),
+                            const Icon(
+                              Icons.star_rounded,
+                              color: Colors.amber,
+                              size: 20,
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               place.rating?.toStringAsFixed(1) ?? '—',
@@ -252,8 +265,8 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                             Text(
                               '(${_formatCount(place.totalRatings ?? 0)})',
                               style: theme.textTheme.bodySmall?.copyWith(
-                                  color: cs.onSurface
-                                      .withValues(alpha: 0.5)),
+                                color: cs.onSurface.withValues(alpha: 0.5),
+                              ),
                             ),
                           ],
                         ),
@@ -263,16 +276,20 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                       if ((place.averagePrice ?? 0) > 0)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
-                            color:
-                                cs.primary.withValues(alpha: 0.1),
+                            color: cs.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.attach_money_rounded,
-                                  color: cs.primary, size: 18),
+                              Icon(
+                                Icons.attach_money_rounded,
+                                color: cs.primary,
+                                size: 18,
+                              ),
                               Text(
                                 'From \$${place.averagePrice?.toStringAsFixed(0)}',
                                 style: GoogleFonts.dmSans(
@@ -287,7 +304,9 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                       else
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.green.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
@@ -315,17 +334,20 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                       Text(
                         place.description ?? '',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                            height: 1.65,
-                            color: cs.onSurface.withValues(alpha: 0.75)),
+                          height: 1.65,
+                          color: cs.onSurface.withValues(alpha: 0.75),
+                        ),
                         maxLines: _descExpanded ? null : 3,
-                        overflow: _descExpanded
-                            ? TextOverflow.visible
-                            : TextOverflow.ellipsis,
+                        overflow:
+                            _descExpanded
+                                ? TextOverflow.visible
+                                : TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 6),
                       GestureDetector(
-                        onTap: () =>
-                            setState(() => _descExpanded = !_descExpanded),
+                        onTap:
+                            () =>
+                                setState(() => _descExpanded = !_descExpanded),
                         child: Text(
                           _descExpanded ? 'Show less' : 'Read more',
                           style: GoogleFonts.dmSans(
@@ -351,8 +373,7 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                     itemBuilder: (_, i) {
                       final isSelected = i == _selectedImageIndex;
                       return GestureDetector(
-                        onTap: () =>
-                            setState(() => _selectedImageIndex = i),
+                        onTap: () => setState(() => _selectedImageIndex = i),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           margin: const EdgeInsets.only(right: 12),
@@ -360,20 +381,21 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: isSelected
-                                  ? cs.primary
-                                  : Colors.transparent,
+                              color:
+                                  isSelected ? cs.primary : Colors.transparent,
                               width: 2.5,
                             ),
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: cs.primary
-                                          .withValues(alpha: 0.3),
-                                      blurRadius: 8,
-                                    ),
-                                  ]
-                                : [],
+                            boxShadow:
+                                isSelected
+                                    ? [
+                                      BoxShadow(
+                                        color: cs.primary.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                        blurRadius: 8,
+                                      ),
+                                    ]
+                                    : [],
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
@@ -389,17 +411,18 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                 ),
 
                 // ── Contact Info ─────────────────────────────────
-                if (place.phoneNumber != null || place.email != null ||
+                if (place.phoneNumber != null ||
+                    place.email != null ||
                     place.address != null) ...[
                   _Section(title: 'Contact & Location'),
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.surfaceVariantD
-                            : cs.surfaceContainerHighest,
+                        color:
+                            isDark
+                                ? AppColors.surfaceVariantD
+                                : cs.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -412,9 +435,9 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                             ),
                           if (place.phoneNumber != null) ...[
                             Divider(
-                                height: 1,
-                                color: cs.outline
-                                    .withValues(alpha: 0.15)),
+                              height: 1,
+                              color: cs.outline.withValues(alpha: 0.15),
+                            ),
                             _ContactTile(
                               icon: Icons.phone_rounded,
                               text: place.phoneNumber!,
@@ -423,9 +446,9 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                           ],
                           if (place.email != null) ...[
                             Divider(
-                                height: 1,
-                                color: cs.outline
-                                    .withValues(alpha: 0.15)),
+                              height: 1,
+                              color: cs.outline.withValues(alpha: 0.15),
+                            ),
                             _ContactTile(
                               icon: Icons.email_rounded,
                               text: place.email!,
@@ -456,8 +479,7 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                                   place.longitude!,
                                 ),
                                 initialZoom: 13.0,
-                                interactionOptions:
-                                    const InteractionOptions(
+                                interactionOptions: const InteractionOptions(
                                   flags: InteractiveFlag.all,
                                 ),
                               ),
@@ -465,8 +487,7 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                                 TileLayer(
                                   urlTemplate:
                                       'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                  userAgentPackageName:
-                                      'com.tuniways.app',
+                                  userAgentPackageName: 'com.tuniways.app',
                                 ),
                                 MarkerLayer(
                                   markers: [
@@ -482,13 +503,14 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                                           color: cs.primary,
                                           shape: BoxShape.circle,
                                           border: Border.all(
-                                              color: Colors.white,
-                                              width: 2.5),
+                                            color: Colors.white,
+                                            width: 2.5,
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: cs.primary
-                                                  .withValues(
-                                                      alpha: 0.5),
+                                              color: cs.primary.withValues(
+                                                alpha: 0.5,
+                                              ),
                                               blurRadius: 12,
                                               spreadRadius: 2,
                                             ),
@@ -529,7 +551,11 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
       // ── Bottom Book Now Bar ────────────────────────────────────
       bottomNavigationBar: Container(
         padding: EdgeInsets.fromLTRB(
-            20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
+          20,
+          16,
+          20,
+          MediaQuery.of(context).padding.bottom + 16,
+        ),
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceVariantD : Colors.white,
           boxShadow: [
@@ -565,7 +591,8 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                 Text(
                   '${_formatCount(place.totalRatings ?? 0)} reviews',
                   style: theme.textTheme.bodySmall?.copyWith(
-                      color: cs.onSurface.withValues(alpha: 0.5)),
+                    color: cs.onSurface.withValues(alpha: 0.5),
+                  ),
                 ),
               ],
             ),
@@ -578,13 +605,16 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   elevation: 0,
                 ),
                 child: Text(
                   'Add to Trip Plan',
                   style: GoogleFonts.dmSans(
-                      fontSize: 16, fontWeight: FontWeight.bold),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -613,10 +643,9 @@ class _Section extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
       child: Text(
         title,
-        style: Theme.of(context)
-            .textTheme
-            .titleMedium
-            ?.copyWith(fontWeight: FontWeight.bold),
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -630,8 +659,11 @@ class _ContactTile extends StatelessWidget {
   final String text;
   final Color color;
 
-  const _ContactTile(
-      {required this.icon, required this.text, required this.color});
+  const _ContactTile({
+    required this.icon,
+    required this.text,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {

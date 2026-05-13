@@ -102,7 +102,7 @@ class VehicleCard extends StatelessWidget {
 
                   // Year · Capacity
                   Text(
-                    '${vehicle.vehicleYear ?? '—'} • ${vehicle.vehicleCapacity ?? '—'} Seats',
+                    '${vehicle.vehicleYear} • ${vehicle.vehicleCapacity} Seats',
                     style: GoogleFonts.dmSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
@@ -122,7 +122,7 @@ class VehicleCard extends StatelessWidget {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: '\$${vehicle.vehiclePrice?.toInt() ?? 0}',
+                              text: '\$${vehicle.vehiclePrice.toInt()}',
                               style: GoogleFonts.dmSans(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,

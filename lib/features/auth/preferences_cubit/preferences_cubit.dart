@@ -92,7 +92,7 @@ class PreferencesCubit extends Cubit<PreferencesState> {
       };
 
       final response = await DioHelper.postData(
-        url: "users", // http://localhost:8080/api-v1/users
+        url: "users", // https://gateway-service-production-a08f.up.railway.app/api-v1/users
         data: requestData,
       );
 

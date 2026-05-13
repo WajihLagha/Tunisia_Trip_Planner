@@ -3,13 +3,15 @@ import 'package:tunisian_trip_planner/features/favourites/cubit/favourites_state
 import 'package:tunisian_trip_planner/shared/network/local/cache_helper.dart';
 
 class FavouritesCubit extends Cubit<FavouritesStates> {
-  FavouritesCubit() : super(FavouritesInitial());
+  final String? userId;
+
+  FavouritesCubit({this.userId}) : super(FavouritesInitial());
 
   static FavouritesCubit get(context) => BlocProvider.of(context);
 
-  static const _placesKey = 'fav_places';
-  static const _accommodationsKey = 'fav_accommodations';
-  static const _transportsKey = 'fav_transports';
+  String get _placesKey => 'fav_places_${userId ?? "guest"}';
+  String get _accommodationsKey => 'fav_accommodations_${userId ?? "guest"}';
+  String get _transportsKey => 'fav_transports_${userId ?? "guest"}';
 
   Set<String> _placeIds = {};
   Set<String> _accommodationIds = {};
